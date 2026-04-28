@@ -1,5 +1,11 @@
-interface UserLike { id: string; username: string }
+interface UserLike {
+  id?: string;
+  name?: string;
+  url?: string;
+}
 
 export function formatUser(u: UserLike): string {
-  return `${u.username} (${u.id})`;
+  const name = u.name ?? "(unknown)";
+  const id = u.id ?? "(no id)";
+  return u.url ? `${name} (${id}) — ${u.url}` : `${name} (${id})`;
 }

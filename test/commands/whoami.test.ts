@@ -13,7 +13,7 @@ describe("whoami", () => {
 
   it("prints human summary by default", async () => {
     fetchMock.mockResolvedValue(
-      new Response(JSON.stringify({ id: "u1", username: "carlos" }), {
+      new Response(JSON.stringify({ data: { id: "u1", name: "carlos" } }), {
         status: 200,
         headers: { "content-type": "application/json" },
       }),
@@ -24,9 +24,9 @@ describe("whoami", () => {
     spy.mockRestore();
   });
 
-  it("emits raw JSON with --json", async () => {
+  it("emits raw JSON with --json (unwraps `data` envelope)", async () => {
     fetchMock.mockResolvedValue(
-      new Response(JSON.stringify({ id: "u1", username: "carlos" }), {
+      new Response(JSON.stringify({ data: { id: "u1", name: "carlos" } }), {
         status: 200,
         headers: { "content-type": "application/json" },
       }),
@@ -34,7 +34,7 @@ describe("whoami", () => {
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     await whoami({ json: true });
     const out = spy.mock.calls.map((c) => c[0]).join("");
-    expect(JSON.parse(out)).toEqual({ id: "u1", username: "carlos" });
+    expect(JSON.parse(out)).toEqual({ id: "u1", name: "carlos" });
     spy.mockRestore();
   });
 });

@@ -4,7 +4,7 @@ import { formatExerciseList } from "../../src/format/exercises.js";
 describe("formatExerciseList", () => {
   it("renders id, title, and primary muscle", () => {
     const out = formatExerciseList([
-      { id: "e1", title: "Squat", primary_muscle_group: "legs", equipment: "barbell" },
+      { id: "e1", title: "Squat", primary_muscle_group: "legs", type: "weight_reps" },
     ]);
     expect(out).toContain("e1");
     expect(out).toContain("Squat");
