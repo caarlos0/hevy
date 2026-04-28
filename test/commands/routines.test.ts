@@ -47,7 +47,7 @@ describe("listRoutines", () => {
 
 describe("getRoutine", () => {
   it("fetches a single routine and prints it", async () => {
-    fetchMock.mockResolvedValue(jsonResponse({ routine: [ROUTINE] }));
+    fetchMock.mockResolvedValue(jsonResponse({ routine: ROUTINE }));
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     await getRoutine("r1", { json: false });
     expect(String(fetchMock.mock.calls[0]![0])).toBe("https://api.hevyapp.com/v1/routines/r1");
@@ -55,7 +55,7 @@ describe("getRoutine", () => {
   });
 
   it("emits raw routine JSON with --json", async () => {
-    fetchMock.mockResolvedValue(jsonResponse({ routine: [ROUTINE] }));
+    fetchMock.mockResolvedValue(jsonResponse({ routine: ROUTINE }));
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     await getRoutine("r1", { json: true });
     expect(JSON.parse(spy.mock.calls.map((c) => c[0]).join(""))).toMatchObject({ id: "r1" });
@@ -64,7 +64,7 @@ describe("getRoutine", () => {
 
 describe("createRoutine", () => {
   it("POSTs body read from stdin and prints created routine", async () => {
-    fetchMock.mockResolvedValue(jsonResponse({ routine: [{ ...ROUTINE, id: "r2" }] }, 201));
+    fetchMock.mockResolvedValue(jsonResponse({ ...ROUTINE, id: "r2" }, 201));
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const stdin = Readable.from([JSON.stringify(ROUTINE)]);
     await createRoutine({ json: true, stdin });
@@ -79,8 +79,8 @@ describe("editRoutine", () => {
   it("with --file -, reads stdin and PUTs", async () => {
     const updated = { ...ROUTINE, title: "Leg Day v2" };
     fetchMock
-      .mockResolvedValueOnce(jsonResponse({ routine: [ROUTINE] }))
-      .mockResolvedValueOnce(jsonResponse({ routine: [updated] }));
+      .mockResolvedValueOnce(jsonResponse({ routine: ROUTINE }))
+      .mockResolvedValueOnce(jsonResponse(updated));
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const stdin = Readable.from([JSON.stringify(updated)]);
     await editRoutine("r1", { file: "-", json: true, stdin });
@@ -90,5 +90,13 @@ describe("editRoutine", () => {
       routine: { title: "Leg Day v2" },
     });
     expect(spy.mock.calls.join("")).toContain("Leg Day v2");
+  });
+
+  it("throws a clear error when stdin is invalid JSON", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ routine: ROUTINE }));
+    const stdin = Readable.from(["not json"]);
+    await expect(editRoutine("r1", { file: "-", json: true, stdin })).rejects.toThrow(
+      /invalid JSON from stdin/i,
+    );
   });
 });

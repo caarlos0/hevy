@@ -38,8 +38,8 @@ interface ListResponse {
   routines: Routine[];
 }
 
-interface SingleResponse {
-  routine: Routine[];
+interface GetSingleResponse {
+  routine?: Routine;
 }
 
 export async function listRoutines(opts: {
@@ -75,10 +75,9 @@ export async function createRoutine(opts: {
   stdin?: Readable;
 }): Promise<void> {
   const input = await readPayload(opts.file, opts.stdin);
-  const data = await request<SingleResponse>("POST", "/v1/routines", {
+  const created = await request<Routine>("POST", "/v1/routines", {
     body: { routine: input },
   });
-  const created = data.routine[0]!;
   if (opts.json) writeJson(created);
   else process.stdout.write(formatRoutine(created) + "\n");
 }
@@ -93,7 +92,7 @@ export async function editRoutine(
   if (opts.file !== undefined) {
     next = await readPayload(opts.file, opts.stdin);
   } else if (!stdinIsTTY()) {
-    next = JSON.parse(await readStdin(opts.stdin)) as Routine;
+    next = parseJsonOrThrow<Routine>(await readStdin(opts.stdin), "stdin");
   } else {
     const result = await editJson<Routine>(current);
     if (!result.edited) {
@@ -103,23 +102,22 @@ export async function editRoutine(
     next = result.value;
   }
 
-  const data = await request<SingleResponse>(
+  const updated = await request<Routine>(
     "PUT",
     `/v1/routines/${encodeURIComponent(id)}`,
     { body: { routine: next } },
   );
-  const updated = data.routine[0]!;
   if (opts.json) writeJson(updated);
   else process.stdout.write(formatRoutine(updated) + "\n");
 }
 
 async function fetchRoutine(id: string): Promise<Routine> {
-  const data = await request<SingleResponse>(
+  const data = await request<GetSingleResponse>(
     "GET",
     `/v1/routines/${encodeURIComponent(id)}`,
   );
-  if (!data.routine[0]) throw new Error(`routine ${id} not found in response`);
-  return data.routine[0];
+  if (!data.routine) throw new Error(`routine ${id} not found in response`);
+  return data.routine;
 }
 
 async function readPayload(
@@ -136,5 +134,14 @@ async function readPayload(
     throw new Error(
       "empty input; provide a JSON routine on stdin or via --file",
     );
-  return JSON.parse(raw) as Routine;
+  return parseJsonOrThrow<Routine>(raw, file === undefined || file === "-" ? "stdin" : file);
+}
+
+function parseJsonOrThrow<T>(raw: string, source: string): T {
+  try {
+    return JSON.parse(raw) as T;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`invalid JSON from ${source}: ${msg}`);
+  }
 }
