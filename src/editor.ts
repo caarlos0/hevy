@@ -9,9 +9,9 @@ export interface EditResult<T> {
   tempPath?: string;
 }
 
-export async function editJson<T>(initial: T): Promise<EditResult<T>> {
+export async function editJson<T>(initial: T, name = "payload.json"): Promise<EditResult<T>> {
   const dir = mkdtempSync(join(tmpdir(), "hevy-"));
-  const file = join(dir, "routine.json");
+  const file = join(dir, name);
   const original = JSON.stringify(initial, null, 2);
   writeFileSync(file, original + "\n");
 

@@ -3,7 +3,7 @@ interface ExerciseLike { title: string; sets: SetLike[] }
 interface RoutineLike {
   id: string;
   title: string;
-  folder_id?: string | null;
+  folder_id?: number | null;
   updated_at?: string;
   exercises: ExerciseLike[];
 }
@@ -13,14 +13,16 @@ export function formatRoutineList(routines: RoutineLike[]): string {
   const rows = routines.map((r) => [
     r.id,
     r.title,
+    r.folder_id != null ? String(r.folder_id) : "",
     String(r.exercises.length),
     r.updated_at ?? "",
   ]);
-  return renderTable(["ID", "TITLE", "EXERCISES", "UPDATED"], rows);
+  return renderTable(["ID", "TITLE", "FOLDER", "EXERCISES", "UPDATED"], rows);
 }
 
 export function formatRoutine(r: RoutineLike): string {
   const lines = [`${r.title}  (${r.id})`];
+  if (r.folder_id != null) lines.push(`folder: ${r.folder_id}`);
   if (r.updated_at) lines.push(`updated: ${r.updated_at}`);
   lines.push("");
   for (const ex of r.exercises) {

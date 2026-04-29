@@ -26,7 +26,7 @@ interface ExerciseIn {
 export interface Routine {
   id: string;
   title: string;
-  folder_id: string | null;
+  folder_id: number | null;
   updated_at?: string;
   notes?: string;
   exercises: ExerciseIn[];
@@ -94,7 +94,7 @@ export async function editRoutine(
   } else if (!stdinIsTTY()) {
     next = parseJsonOrThrow<Routine>(await readStdin(opts.stdin), "stdin");
   } else {
-    const result = await editJson<Routine>(current);
+    const result = await editJson<Routine>(current, "routine.json");
     if (!result.edited) {
       process.stderr.write("no changes; aborting\n");
       return;
