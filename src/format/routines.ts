@@ -1,3 +1,5 @@
+import { renderTable } from "./table.js";
+
 interface SetLike { type?: string; weight_kg?: number | null; reps?: number | null; duration_seconds?: number | null }
 interface ExerciseLike { title: string; sets: SetLike[] }
 interface RoutineLike {
@@ -42,11 +44,4 @@ function formatSet(s: SetLike): string {
   return parts.join(" × ");
 }
 
-function renderTable(headers: string[], rows: string[][]): string {
-  const widths = headers.map((h, i) =>
-    Math.max(h.length, ...rows.map((r) => (r[i] ?? "").length)),
-  );
-  const fmt = (cells: string[]) =>
-    cells.map((c, i) => c.padEnd(widths[i]!)).join("  ").trimEnd();
-  return [fmt(headers), ...rows.map(fmt)].join("\n");
-}
+
