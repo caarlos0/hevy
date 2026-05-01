@@ -1,5 +1,5 @@
 import { setApiKey } from "./api/client.js";
-import { HevyError, UsageError } from "./api/errors.js";
+import { HevyError } from "./api/errors.js";
 import { buildProgram } from "./cli.js";
 
 async function main(): Promise<void> {
@@ -32,10 +32,6 @@ function handle(err: unknown): never {
       process.stderr.write(`error: ${err.status} ${err.message}\n`);
     }
     process.exit(1);
-  }
-  if (err instanceof UsageError) {
-    process.stderr.write(`error: ${err.message}\n`);
-    process.exit(64);
   }
   // commander.exitOverride throws CommanderError on usage problems, --help, --version
   if (err && typeof err === "object" && "code" in err && typeof (err as { code: unknown }).code === "string") {

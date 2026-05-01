@@ -8,10 +8,3 @@ export class HevyError extends Error {
     this.name = "HevyError";
   }
 }
-
-export class UsageError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "UsageError";
-  }
-}
