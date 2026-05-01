@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "CLI for managing Hevy routines via the public Hevy API",
   "type": "module",
-  "bin": { "hevy": "./lib/index.cjs" },
+  "bin": { "hevy": "./dist/index.cjs" },
   "files": ["dist", "README.md"],
   "engines": { "node": ">=20" },
   "scripts": {

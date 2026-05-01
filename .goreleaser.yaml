@@ -15,7 +15,7 @@ before:
 
 builds:
   - builder: node
-    main: ./lib/index.cjs
+    main: ./dist/index.cjs
     targets:
       - darwin-arm64
       - darwin-x64
