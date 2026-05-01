@@ -1,13 +1,12 @@
 import type { Readable } from "node:stream";
 import { request } from "../api/client.js";
-import { editJson } from "../editor.js";
 import {
   formatEventList,
   formatWorkout,
   formatWorkoutList,
   type WorkoutEvent,
 } from "../format/workouts.js";
-import { parseJson, readJsonPayload, readStdin, stdinIsTTY, writeJson } from "../io.js";
+import { readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
 
 interface SetIn {
   type?: string;
@@ -103,19 +102,10 @@ export async function editWorkout(
   opts: { file?: string; json?: boolean; stdin?: Readable },
 ): Promise<void> {
   const current = await fetchWorkout(id);
-  let next: Workout;
-
-  if (opts.file !== undefined) {
-    next = await readJsonPayload<Workout>(opts.file, opts.stdin, "workout");
-  } else if (!stdinIsTTY()) {
-    next = parseJson<Workout>(await readStdin(opts.stdin), "stdin");
-  } else {
-    const result = await editJson<Workout>(current, "workout.json");
-    if (!result.edited) {
-      process.stderr.write("no changes; aborting\n");
-      return;
-    }
-    next = result.value;
+  const next = await resolveEditPayload<Workout>(current, opts, "workout.json", "workout");
+  if (next === null) {
+    process.stderr.write("no changes; aborting\n");
+    return;
   }
 
   const updated = await request<Workout>(

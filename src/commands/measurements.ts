@@ -1,8 +1,7 @@
 import type { Readable } from "node:stream";
 import { request } from "../api/client.js";
-import { editJson } from "../editor.js";
 import { formatMeasurement, formatMeasurementList } from "../format/measurements.js";
-import { parseJson, readJsonPayload, readStdin, stdinIsTTY, writeJson } from "../io.js";
+import { readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
 
 export interface BodyMeasurement {
   date: string;
@@ -84,19 +83,15 @@ export async function editMeasurement(
     "GET",
     `/v1/body_measurements/${encodeURIComponent(date)}`,
   );
-  let next: BodyMeasurement;
-
-  if (opts.file !== undefined) {
-    next = await readJsonPayload<BodyMeasurement>(opts.file, opts.stdin, "body measurement");
-  } else if (!stdinIsTTY()) {
-    next = parseJson<BodyMeasurement>(await readStdin(opts.stdin), "stdin");
-  } else {
-    const result = await editJson<BodyMeasurement>(current, "measurement.json");
-    if (!result.edited) {
-      process.stderr.write("no changes; aborting\n");
-      return;
-    }
-    next = result.value;
+  const next = await resolveEditPayload<BodyMeasurement>(
+    current,
+    opts,
+    "measurement.json",
+    "body measurement",
+  );
+  if (next === null) {
+    process.stderr.write("no changes; aborting\n");
+    return;
   }
 
   const body: Record<string, unknown> = { ...next };

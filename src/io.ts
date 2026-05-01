@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import type { Readable } from "node:stream";
+import { editJson } from "./editor.js";
 
 export async function readStdin(stream: Readable = process.stdin): Promise<string> {
   const chunks: Buffer[] = [];
@@ -37,4 +38,28 @@ export async function readJsonPayload<T>(
     throw new Error(`empty input; provide a JSON ${kind} on stdin or via --file`);
   }
   return parseJson<T>(raw, fromStdin ? "stdin" : file);
+}
+
+/**
+ * Resolve the next value for an edit command:
+ *   - --file <path> or --file -  → read JSON from file/stdin
+ *   - piped stdin (non-TTY)      → read JSON from stdin
+ *   - interactive TTY            → open $EDITOR with `current` as a starting point
+ *
+ * Returns null when the user opened $EDITOR and made no changes (caller should abort).
+ */
+export async function resolveEditPayload<T>(
+  current: T,
+  opts: { file?: string; stdin?: Readable },
+  tempName: string,
+  kind: string,
+): Promise<T | null> {
+  if (opts.file !== undefined) {
+    return readJsonPayload<T>(opts.file, opts.stdin, kind);
+  }
+  if (!stdinIsTTY()) {
+    return parseJson<T>(await readStdin(opts.stdin), "stdin");
+  }
+  const result = await editJson<T>(current, tempName);
+  return result.edited ? result.value : null;
 }

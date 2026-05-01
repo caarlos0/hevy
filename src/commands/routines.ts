@@ -1,8 +1,7 @@
 import type { Readable } from "node:stream";
 import { request } from "../api/client.js";
-import { editJson } from "../editor.js";
 import { formatRoutine, formatRoutineList } from "../format/routines.js";
-import { parseJson, readJsonPayload, readStdin, stdinIsTTY, writeJson } from "../io.js";
+import { readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
 
 interface SetIn {
   type?: string;
@@ -86,19 +85,10 @@ export async function editRoutine(
   opts: { file?: string; json?: boolean; stdin?: Readable },
 ): Promise<void> {
   const current = await fetchRoutine(id);
-  let next: Routine;
-
-  if (opts.file !== undefined) {
-    next = await readJsonPayload<Routine>(opts.file, opts.stdin, "routine");
-  } else if (!stdinIsTTY()) {
-    next = parseJson<Routine>(await readStdin(opts.stdin), "stdin");
-  } else {
-    const result = await editJson<Routine>(current, "routine.json");
-    if (!result.edited) {
-      process.stderr.write("no changes; aborting\n");
-      return;
-    }
-    next = result.value;
+  const next = await resolveEditPayload<Routine>(current, opts, "routine.json", "routine");
+  if (next === null) {
+    process.stderr.write("no changes; aborting\n");
+    return;
   }
 
   const updated = await request<Routine>(
