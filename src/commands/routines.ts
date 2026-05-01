@@ -1,9 +1,8 @@
-import { readFile } from "node:fs/promises";
 import type { Readable } from "node:stream";
 import { request } from "../api/client.js";
 import { editJson } from "../editor.js";
 import { formatRoutine, formatRoutineList } from "../format/routines.js";
-import { readStdin, stdinIsTTY, writeJson } from "../io.js";
+import { parseJson, readJsonPayload, readStdin, stdinIsTTY, writeJson } from "../io.js";
 
 interface SetIn {
   type?: string;
@@ -74,7 +73,7 @@ export async function createRoutine(opts: {
   json?: boolean;
   stdin?: Readable;
 }): Promise<void> {
-  const input = await readPayload(opts.file, opts.stdin);
+  const input = await readJsonPayload<Routine>(opts.file, opts.stdin, "routine");
   const created = await request<Routine>("POST", "/v1/routines", {
     body: { routine: input },
   });
@@ -90,9 +89,9 @@ export async function editRoutine(
   let next: Routine;
 
   if (opts.file !== undefined) {
-    next = await readPayload(opts.file, opts.stdin);
+    next = await readJsonPayload<Routine>(opts.file, opts.stdin, "routine");
   } else if (!stdinIsTTY()) {
-    next = parseJsonOrThrow<Routine>(await readStdin(opts.stdin), "stdin");
+    next = parseJson<Routine>(await readStdin(opts.stdin), "stdin");
   } else {
     const result = await editJson<Routine>(current, "routine.json");
     if (!result.edited) {
@@ -120,28 +119,4 @@ async function fetchRoutine(id: string): Promise<Routine> {
   return data.routine;
 }
 
-async function readPayload(
-  file: string | undefined,
-  stdin: Readable | undefined,
-): Promise<Routine> {
-  let raw: string;
-  if (file === undefined || file === "-") {
-    raw = await readStdin(stdin);
-  } else {
-    raw = await readFile(file, "utf8");
-  }
-  if (!raw.trim())
-    throw new Error(
-      "empty input; provide a JSON routine on stdin or via --file",
-    );
-  return parseJsonOrThrow<Routine>(raw, file === undefined || file === "-" ? "stdin" : file);
-}
 
-function parseJsonOrThrow<T>(raw: string, source: string): T {
-  try {
-    return JSON.parse(raw) as T;
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    throw new Error(`invalid JSON from ${source}: ${msg}`);
-  }
-}

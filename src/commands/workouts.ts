@@ -1,4 +1,3 @@
-import { readFile } from "node:fs/promises";
 import type { Readable } from "node:stream";
 import { request } from "../api/client.js";
 import { editJson } from "../editor.js";
@@ -8,7 +7,7 @@ import {
   formatWorkoutList,
   type WorkoutEvent,
 } from "../format/workouts.js";
-import { readStdin, stdinIsTTY, writeJson } from "../io.js";
+import { parseJson, readJsonPayload, readStdin, stdinIsTTY, writeJson } from "../io.js";
 
 interface SetIn {
   type?: string;
@@ -91,7 +90,7 @@ export async function createWorkout(opts: {
   json?: boolean;
   stdin?: Readable;
 }): Promise<void> {
-  const input = await readPayload(opts.file, opts.stdin);
+  const input = await readJsonPayload<Workout>(opts.file, opts.stdin, "workout");
   const created = await request<Workout>("POST", "/v1/workouts", {
     body: { workout: input },
   });
@@ -107,9 +106,9 @@ export async function editWorkout(
   let next: Workout;
 
   if (opts.file !== undefined) {
-    next = await readPayload(opts.file, opts.stdin);
+    next = await readJsonPayload<Workout>(opts.file, opts.stdin, "workout");
   } else if (!stdinIsTTY()) {
-    next = parseJsonOrThrow<Workout>(await readStdin(opts.stdin), "stdin");
+    next = parseJson<Workout>(await readStdin(opts.stdin), "stdin");
   } else {
     const result = await editJson<Workout>(current, "workout.json");
     if (!result.edited) {
@@ -160,29 +159,4 @@ async function fetchWorkout(id: string): Promise<Workout> {
   );
 }
 
-async function readPayload(
-  file: string | undefined,
-  stdin: Readable | undefined,
-): Promise<Workout> {
-  let raw: string;
-  if (file === undefined || file === "-") {
-    raw = await readStdin(stdin);
-  } else {
-    raw = await readFile(file, "utf8");
-  }
-  if (!raw.trim())
-    throw new Error("empty input; provide a JSON workout on stdin or via --file");
-  return parseJsonOrThrow<Workout>(
-    raw,
-    file === undefined || file === "-" ? "stdin" : file,
-  );
-}
 
-function parseJsonOrThrow<T>(raw: string, source: string): T {
-  try {
-    return JSON.parse(raw) as T;
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    throw new Error(`invalid JSON from ${source}: ${msg}`);
-  }
-}

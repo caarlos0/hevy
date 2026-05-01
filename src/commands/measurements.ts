@@ -1,9 +1,8 @@
-import { readFile } from "node:fs/promises";
 import type { Readable } from "node:stream";
 import { request } from "../api/client.js";
 import { editJson } from "../editor.js";
 import { formatMeasurement, formatMeasurementList } from "../format/measurements.js";
-import { readStdin, stdinIsTTY, writeJson } from "../io.js";
+import { parseJson, readJsonPayload, readStdin, stdinIsTTY, writeJson } from "../io.js";
 
 export interface BodyMeasurement {
   date: string;
@@ -67,7 +66,7 @@ export async function createMeasurement(opts: {
   json?: boolean;
   stdin?: Readable;
 }): Promise<void> {
-  const input = await readPayload(opts.file, opts.stdin);
+  const input = await readJsonPayload<BodyMeasurement>(opts.file, opts.stdin, "body measurement");
   const created = await request<BodyMeasurement | null>(
     "POST",
     "/v1/body_measurements",
@@ -88,12 +87,9 @@ export async function editMeasurement(
   let next: BodyMeasurement;
 
   if (opts.file !== undefined) {
-    next = await readPayload(opts.file, opts.stdin);
+    next = await readJsonPayload<BodyMeasurement>(opts.file, opts.stdin, "body measurement");
   } else if (!stdinIsTTY()) {
-    next = parseJsonOrThrow<BodyMeasurement>(
-      await readStdin(opts.stdin),
-      "stdin",
-    );
+    next = parseJson<BodyMeasurement>(await readStdin(opts.stdin), "stdin");
   } else {
     const result = await editJson<BodyMeasurement>(current, "measurement.json");
     if (!result.edited) {
@@ -114,31 +110,4 @@ export async function editMeasurement(
   else process.stdout.write(formatMeasurement(updated ?? { ...next, date }) + "\n");
 }
 
-async function readPayload(
-  file: string | undefined,
-  stdin: Readable | undefined,
-): Promise<BodyMeasurement> {
-  let raw: string;
-  if (file === undefined || file === "-") {
-    raw = await readStdin(stdin);
-  } else {
-    raw = await readFile(file, "utf8");
-  }
-  if (!raw.trim())
-    throw new Error(
-      "empty input; provide a JSON body measurement on stdin or via --file",
-    );
-  return parseJsonOrThrow<BodyMeasurement>(
-    raw,
-    file === undefined || file === "-" ? "stdin" : file,
-  );
-}
 
-function parseJsonOrThrow<T>(raw: string, source: string): T {
-  try {
-    return JSON.parse(raw) as T;
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    throw new Error(`invalid JSON from ${source}: ${msg}`);
-  }
-}
