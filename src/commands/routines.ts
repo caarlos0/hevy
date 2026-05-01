@@ -1,5 +1,5 @@
 import type { Readable } from "node:stream";
-import { request } from "../api/client.js";
+import type { Client } from "../api/client.js";
 import { formatRoutine, formatRoutineList } from "../format/routines.js";
 import { readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
 
@@ -26,6 +26,7 @@ export interface Routine {
   title: string;
   folder_id: number | null;
   updated_at?: string;
+  created_at?: string;
   notes?: string;
   exercises: ExerciseIn[];
 }
@@ -40,12 +41,19 @@ interface GetSingleResponse {
   routine?: Routine;
 }
 
-export async function listRoutines(opts: {
-  page?: number;
-  pageSize?: number;
-  json?: boolean;
-}): Promise<void> {
-  const data = await request<ListResponse>("GET", "/v1/routines", {
+const SERVER_FIELDS = ["id", "updated_at", "created_at"] as const;
+
+function stripServerFields(routine: Routine): Omit<Routine, "id" | "updated_at" | "created_at"> {
+  const copy: Record<string, unknown> = { ...routine };
+  for (const f of SERVER_FIELDS) delete copy[f];
+  return copy as Omit<Routine, "id" | "updated_at" | "created_at">;
+}
+
+export async function listRoutines(
+  client: Client,
+  opts: { page?: number; pageSize?: number; json?: boolean },
+): Promise<void> {
+  const data = await client.request<ListResponse>("GET", "/v1/routines", {
     query: { page: opts.page, pageSize: opts.pageSize },
   });
   if (opts.json) {
@@ -56,10 +64,11 @@ export async function listRoutines(opts: {
 }
 
 export async function getRoutine(
+  client: Client,
   id: string,
   opts: { json?: boolean },
 ): Promise<void> {
-  const routine = await fetchRoutine(id);
+  const routine = await fetchRoutine(client, id);
   if (opts.json) {
     writeJson(routine);
     return;
@@ -67,46 +76,44 @@ export async function getRoutine(
   process.stdout.write(formatRoutine(routine) + "\n");
 }
 
-export async function createRoutine(opts: {
-  file?: string;
-  json?: boolean;
-  stdin?: Readable;
-}): Promise<void> {
+export async function createRoutine(
+  client: Client,
+  opts: { file?: string; json?: boolean; stdin?: Readable },
+): Promise<void> {
   const input = await readJsonPayload<Routine>(opts.file, opts.stdin, "routine");
-  const created = await request<Routine>("POST", "/v1/routines", {
-    body: { routine: input },
+  const created = await client.request<Routine>("POST", "/v1/routines", {
+    body: { routine: stripServerFields(input) },
   });
   if (opts.json) writeJson(created);
   else process.stdout.write(formatRoutine(created) + "\n");
 }
 
 export async function editRoutine(
+  client: Client,
   id: string,
   opts: { file?: string; json?: boolean; stdin?: Readable },
 ): Promise<void> {
-  const current = await fetchRoutine(id);
+  const current = await fetchRoutine(client, id);
   const next = await resolveEditPayload<Routine>(current, opts, "routine.json", "routine");
   if (next === null) {
     process.stderr.write("no changes; aborting\n");
     return;
   }
 
-  const updated = await request<Routine>(
+  const updated = await client.request<Routine>(
     "PUT",
     `/v1/routines/${encodeURIComponent(id)}`,
-    { body: { routine: next } },
+    { body: { routine: stripServerFields(next) } },
   );
   if (opts.json) writeJson(updated);
   else process.stdout.write(formatRoutine(updated) + "\n");
 }
 
-async function fetchRoutine(id: string): Promise<Routine> {
-  const data = await request<GetSingleResponse>(
+async function fetchRoutine(client: Client, id: string): Promise<Routine> {
+  const data = await client.request<GetSingleResponse>(
     "GET",
     `/v1/routines/${encodeURIComponent(id)}`,
   );
   if (!data.routine) throw new Error(`routine ${id} not found in response`);
   return data.routine;
 }
-
-

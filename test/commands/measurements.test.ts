@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setApiKey } from "../../src/api/client.js";
+import { createClient } from "../../src/api/client.js";
 import {
   createMeasurement,
   editMeasurement,
@@ -16,6 +16,12 @@ const M = {
 };
 
 const fetchMock = vi.fn();
+const client = createClient({
+  apiKey: "k",
+  userAgent: "hevy-cli/test",
+  fetchImpl: fetchMock as unknown as typeof fetch,
+});
+
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -23,11 +29,7 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-beforeEach(() => {
-  globalThis.fetch = fetchMock as unknown as typeof fetch;
-  setApiKey("k");
-  fetchMock.mockReset();
-});
+beforeEach(() => fetchMock.mockReset());
 afterEach(() => vi.restoreAllMocks());
 
 describe("listMeasurements", () => {
@@ -36,7 +38,7 @@ describe("listMeasurements", () => {
       jsonResponse({ page: 1, page_count: 1, body_measurements: [M] }),
     );
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await listMeasurements({ page: 1, json: false });
+    await listMeasurements(client, { page: 1, json: false });
     expect(String(fetchMock.mock.calls[0]![0])).toBe(
       "https://api.hevyapp.com/v1/body_measurements?page=1",
     );
@@ -50,7 +52,7 @@ describe("getMeasurement", () => {
   it("fetches by date", async () => {
     fetchMock.mockResolvedValue(jsonResponse(M));
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await getMeasurement("2026-04-01", { json: false });
+    await getMeasurement(client, "2026-04-01", { json: false });
     expect(String(fetchMock.mock.calls[0]![0])).toBe(
       "https://api.hevyapp.com/v1/body_measurements/2026-04-01",
     );
@@ -59,11 +61,11 @@ describe("getMeasurement", () => {
 });
 
 describe("createMeasurement", () => {
-  it("POSTs body without envelope", async () => {
-    fetchMock.mockResolvedValue(jsonResponse(null));
+  it("POSTs body without envelope and tolerates 204", async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
     const stdin = Readable.from([JSON.stringify(M)]);
     vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await createMeasurement({ json: true, stdin });
+    await createMeasurement(client, { json: true, stdin });
     const init = fetchMock.mock.calls[0]![1] as RequestInit;
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body as string)).toEqual(M);
@@ -74,11 +76,11 @@ describe("editMeasurement", () => {
   it("PUTs to /body_measurements/<date> with date stripped from body", async () => {
     fetchMock
       .mockResolvedValueOnce(jsonResponse(M))
-      .mockResolvedValueOnce(jsonResponse(null));
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
     const next = { ...M, weight_kg: 81 };
     const stdin = Readable.from([JSON.stringify(next)]);
     vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await editMeasurement("2026-04-01", { file: "-", json: true, stdin });
+    await editMeasurement(client, "2026-04-01", { file: "-", json: true, stdin });
     const putCall = fetchMock.mock.calls[1]!;
     expect(String(putCall[0])).toBe(
       "https://api.hevyapp.com/v1/body_measurements/2026-04-01",

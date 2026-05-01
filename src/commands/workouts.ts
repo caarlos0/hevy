@@ -1,5 +1,5 @@
 import type { Readable } from "node:stream";
-import { request } from "../api/client.js";
+import type { Client } from "../api/client.js";
 import {
   formatEventList,
   formatWorkout,
@@ -54,12 +54,19 @@ interface EventsResponse {
   events: WorkoutEvent[];
 }
 
-export async function listWorkouts(opts: {
-  page?: number;
-  pageSize?: number;
-  json?: boolean;
-}): Promise<void> {
-  const data = await request<ListResponse>("GET", "/v1/workouts", {
+const SERVER_FIELDS = ["id", "updated_at", "created_at"] as const;
+
+function stripServerFields(workout: Workout): Omit<Workout, "id" | "updated_at" | "created_at"> {
+  const copy: Record<string, unknown> = { ...workout };
+  for (const f of SERVER_FIELDS) delete copy[f];
+  return copy as Omit<Workout, "id" | "updated_at" | "created_at">;
+}
+
+export async function listWorkouts(
+  client: Client,
+  opts: { page?: number; pageSize?: number; json?: boolean },
+): Promise<void> {
+  const data = await client.request<ListResponse>("GET", "/v1/workouts", {
     query: { page: opts.page, pageSize: opts.pageSize },
   });
   if (opts.json) {
@@ -70,13 +77,11 @@ export async function listWorkouts(opts: {
 }
 
 export async function getWorkout(
+  client: Client,
   id: string,
   opts: { json?: boolean },
 ): Promise<void> {
-  const workout = await request<Workout>(
-    "GET",
-    `/v1/workouts/${encodeURIComponent(id)}`,
-  );
+  const workout = await fetchWorkout(client, id);
   if (opts.json) {
     writeJson(workout);
     return;
@@ -84,41 +89,44 @@ export async function getWorkout(
   process.stdout.write(formatWorkout(workout) + "\n");
 }
 
-export async function createWorkout(opts: {
-  file?: string;
-  json?: boolean;
-  stdin?: Readable;
-}): Promise<void> {
+export async function createWorkout(
+  client: Client,
+  opts: { file?: string; json?: boolean; stdin?: Readable },
+): Promise<void> {
   const input = await readJsonPayload<Workout>(opts.file, opts.stdin, "workout");
-  const created = await request<Workout>("POST", "/v1/workouts", {
-    body: { workout: input },
+  const created = await client.request<Workout>("POST", "/v1/workouts", {
+    body: { workout: stripServerFields(input) },
   });
   if (opts.json) writeJson(created);
   else process.stdout.write(formatWorkout(created) + "\n");
 }
 
 export async function editWorkout(
+  client: Client,
   id: string,
   opts: { file?: string; json?: boolean; stdin?: Readable },
 ): Promise<void> {
-  const current = await fetchWorkout(id);
+  const current = await fetchWorkout(client, id);
   const next = await resolveEditPayload<Workout>(current, opts, "workout.json", "workout");
   if (next === null) {
     process.stderr.write("no changes; aborting\n");
     return;
   }
 
-  const updated = await request<Workout>(
+  const updated = await client.request<Workout>(
     "PUT",
     `/v1/workouts/${encodeURIComponent(id)}`,
-    { body: { workout: next } },
+    { body: { workout: stripServerFields(next) } },
   );
   if (opts.json) writeJson(updated);
   else process.stdout.write(formatWorkout(updated) + "\n");
 }
 
-export async function countWorkouts(opts: { json?: boolean }): Promise<void> {
-  const data = await request<CountResponse>("GET", "/v1/workouts/count");
+export async function countWorkouts(
+  client: Client,
+  opts: { json?: boolean },
+): Promise<void> {
+  const data = await client.request<CountResponse>("GET", "/v1/workouts/count");
   if (opts.json) {
     writeJson(data);
     return;
@@ -126,13 +134,11 @@ export async function countWorkouts(opts: { json?: boolean }): Promise<void> {
   process.stdout.write(`${data.workout_count} workouts\n`);
 }
 
-export async function listWorkoutEvents(opts: {
-  page?: number;
-  pageSize?: number;
-  since?: string;
-  json?: boolean;
-}): Promise<void> {
-  const data = await request<EventsResponse>("GET", "/v1/workouts/events", {
+export async function listWorkoutEvents(
+  client: Client,
+  opts: { page?: number; pageSize?: number; since?: string; json?: boolean },
+): Promise<void> {
+  const data = await client.request<EventsResponse>("GET", "/v1/workouts/events", {
     query: { page: opts.page, pageSize: opts.pageSize, since: opts.since },
   });
   if (opts.json) {
@@ -142,11 +148,9 @@ export async function listWorkoutEvents(opts: {
   process.stdout.write(formatEventList(data.events) + "\n");
 }
 
-async function fetchWorkout(id: string): Promise<Workout> {
-  return await request<Workout>(
+async function fetchWorkout(client: Client, id: string): Promise<Workout> {
+  return await client.request<Workout>(
     "GET",
     `/v1/workouts/${encodeURIComponent(id)}`,
   );
 }
-
-

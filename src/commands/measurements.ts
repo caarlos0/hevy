@@ -1,5 +1,5 @@
 import type { Readable } from "node:stream";
-import { request } from "../api/client.js";
+import type { Client } from "../api/client.js";
 import { formatMeasurement, formatMeasurementList } from "../format/measurements.js";
 import { readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
 
@@ -30,12 +30,11 @@ interface ListResponse {
   body_measurements: BodyMeasurement[];
 }
 
-export async function listMeasurements(opts: {
-  page?: number;
-  pageSize?: number;
-  json?: boolean;
-}): Promise<void> {
-  const data = await request<ListResponse>("GET", "/v1/body_measurements", {
+export async function listMeasurements(
+  client: Client,
+  opts: { page?: number; pageSize?: number; json?: boolean },
+): Promise<void> {
+  const data = await client.request<ListResponse>("GET", "/v1/body_measurements", {
     query: { page: opts.page, pageSize: opts.pageSize },
   });
   if (opts.json) {
@@ -46,10 +45,11 @@ export async function listMeasurements(opts: {
 }
 
 export async function getMeasurement(
+  client: Client,
   date: string,
   opts: { json?: boolean },
 ): Promise<void> {
-  const m = await request<BodyMeasurement>(
+  const m = await client.request<BodyMeasurement>(
     "GET",
     `/v1/body_measurements/${encodeURIComponent(date)}`,
   );
@@ -60,13 +60,12 @@ export async function getMeasurement(
   process.stdout.write(formatMeasurement(m) + "\n");
 }
 
-export async function createMeasurement(opts: {
-  file?: string;
-  json?: boolean;
-  stdin?: Readable;
-}): Promise<void> {
+export async function createMeasurement(
+  client: Client,
+  opts: { file?: string; json?: boolean; stdin?: Readable },
+): Promise<void> {
   const input = await readJsonPayload<BodyMeasurement>(opts.file, opts.stdin, "body measurement");
-  const created = await request<BodyMeasurement | null>(
+  const created = await client.requestMaybe<BodyMeasurement>(
     "POST",
     "/v1/body_measurements",
     { body: input },
@@ -76,10 +75,11 @@ export async function createMeasurement(opts: {
 }
 
 export async function editMeasurement(
+  client: Client,
   date: string,
   opts: { file?: string; json?: boolean; stdin?: Readable },
 ): Promise<void> {
-  const current = await request<BodyMeasurement>(
+  const current = await client.request<BodyMeasurement>(
     "GET",
     `/v1/body_measurements/${encodeURIComponent(date)}`,
   );
@@ -96,7 +96,7 @@ export async function editMeasurement(
 
   const body: Record<string, unknown> = { ...next };
   delete body.date;
-  const updated = await request<BodyMeasurement | null>(
+  const updated = await client.requestMaybe<BodyMeasurement>(
     "PUT",
     `/v1/body_measurements/${encodeURIComponent(date)}`,
     { body },
@@ -104,5 +104,3 @@ export async function editMeasurement(
   if (opts.json) writeJson(updated ?? { ...next, date });
   else process.stdout.write(formatMeasurement(updated ?? { ...next, date }) + "\n");
 }
-
-

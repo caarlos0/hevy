@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setApiKey } from "../../src/api/client.js";
+import { createClient } from "../../src/api/client.js";
 import {
   createCustomExercise,
   getExercise,
@@ -8,11 +8,13 @@ import {
 } from "../../src/commands/exercises.js";
 
 const fetchMock = vi.fn();
-beforeEach(() => {
-  globalThis.fetch = fetchMock as unknown as typeof fetch;
-  setApiKey("k");
-  fetchMock.mockReset();
+const client = createClient({
+  apiKey: "k",
+  userAgent: "hevy-cli/test",
+  fetchImpl: fetchMock as unknown as typeof fetch,
 });
+
+beforeEach(() => fetchMock.mockReset());
 afterEach(() => vi.restoreAllMocks());
 
 describe("listExercises", () => {
@@ -31,46 +33,25 @@ describe("listExercises", () => {
       ),
     );
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await listExercises({ json: false });
+    await listExercises(client, { json: false });
     const out = spy.mock.calls.map((c) => c[0]).join("");
     expect(out).toContain("Squat");
     expect(out).toContain("Bench");
   });
 
-  it("walks all pages and filters when --search is given", async () => {
-    fetchMock
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            page: 1,
-            page_count: 2,
-            exercise_templates: [
-              { id: "e1", title: "Squat", primary_muscle_group: "legs" },
-              { id: "e2", title: "Deadlift", primary_muscle_group: "back" },
-            ],
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            page: 2,
-            page_count: 2,
-            exercise_templates: [
-              { id: "e3", title: "Bench Press", primary_muscle_group: "chest" },
-            ],
-          }),
-          { status: 200, headers: { "content-type": "application/json" } },
-        ),
-      );
-    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await listExercises({ search: "bench", json: false });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    const out = spy.mock.calls.map((c) => c[0]).join("");
-    expect(out).toContain("Bench Press");
-    expect(out).not.toContain("Squat");
-    expect(out).not.toContain("Deadlift");
+  it("passes paging through to the API", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ page: 2, page_count: 5, exercise_templates: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await listExercises(client, { page: 2, pageSize: 50, json: false });
+    expect(String(fetchMock.mock.calls[0]![0])).toBe(
+      "https://api.hevyapp.com/v1/exercise_templates?page=2&pageSize=50",
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -88,7 +69,7 @@ describe("getExercise", () => {
       ),
     );
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await getExercise("e1", { json: false });
+    await getExercise(client, "e1", { json: false });
     expect(String(fetchMock.mock.calls[0]![0])).toBe(
       "https://api.hevyapp.com/v1/exercise_templates/e1",
     );
@@ -105,7 +86,7 @@ describe("createCustomExercise", () => {
       }),
     );
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await createCustomExercise({
+    await createCustomExercise(client, {
       title: "Bulgarian Split Squat",
       type: "weight_reps",
       equipment: "dumbbell",
@@ -129,7 +110,7 @@ describe("createCustomExercise", () => {
 
   it("rejects empty title", async () => {
     await expect(
-      createCustomExercise({
+      createCustomExercise(client, {
         title: "  ",
         type: "weight_reps",
         equipment: "dumbbell",
@@ -160,7 +141,7 @@ describe("getExerciseHistory", () => {
       ),
     );
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await getExerciseHistory("e1", {
+    await getExerciseHistory(client, "e1", {
       startDate: "2026-01-01T00:00:00Z",
       endDate: "2026-12-31T23:59:59Z",
       json: false,

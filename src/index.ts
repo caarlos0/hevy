@@ -1,21 +1,25 @@
 import { CommanderError } from "commander";
-import { setApiKey } from "./api/client.js";
+import pkg from "../package.json" with { type: "json" };
+import { createClient } from "./api/client.js";
 import { HevyError } from "./api/errors.js";
 import { buildProgram } from "./cli.js";
 
 async function main(): Promise<void> {
-  const program = buildProgram();
-  program.exitOverride();
-  program.hook("preAction", () => {
-    const key = process.env.HEVY_API_KEY;
-    if (!key || key.trim().length === 0) {
-      process.stderr.write(
-        "error: HEVY_API_KEY is not set. Get an API key at https://hevy.com/settings?api\n",
-      );
-      process.exit(1);
-    }
-    setApiKey(key);
+  const key = process.env.HEVY_API_KEY;
+  if (!key || key.trim().length === 0) {
+    process.stderr.write(
+      "error: HEVY_API_KEY is not set. Get an API key at https://hevy.com/settings?api\n",
+    );
+    process.exit(1);
+  }
+
+  const client = createClient({
+    apiKey: key,
+    userAgent: `hevy-cli/${pkg.version}`,
   });
+
+  const program = buildProgram(client);
+  program.exitOverride();
   try {
     await program.parseAsync(process.argv);
   } catch (err) {

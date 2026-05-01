@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setApiKey } from "../../src/api/client.js";
+import { createClient } from "../../src/api/client.js";
 import {
   countWorkouts,
   createWorkout,
@@ -15,6 +15,8 @@ const WORKOUT = {
   title: "Morning Lift",
   start_time: "2026-04-01T07:00:00Z",
   end_time: "2026-04-01T08:00:00Z",
+  updated_at: "2026-04-01T08:01:00Z",
+  created_at: "2026-04-01T08:01:00Z",
   exercises: [
     {
       title: "Bench",
@@ -25,6 +27,12 @@ const WORKOUT = {
 };
 
 const fetchMock = vi.fn();
+const client = createClient({
+  apiKey: "k",
+  userAgent: "hevy-cli/test",
+  fetchImpl: fetchMock as unknown as typeof fetch,
+});
+
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -32,11 +40,7 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-beforeEach(() => {
-  globalThis.fetch = fetchMock as unknown as typeof fetch;
-  setApiKey("k");
-  fetchMock.mockReset();
-});
+beforeEach(() => fetchMock.mockReset());
 afterEach(() => vi.restoreAllMocks());
 
 describe("listWorkouts", () => {
@@ -45,7 +49,7 @@ describe("listWorkouts", () => {
       jsonResponse({ page: 1, page_count: 1, workouts: [WORKOUT] }),
     );
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await listWorkouts({ page: 2, pageSize: 5, json: false });
+    await listWorkouts(client, { page: 2, pageSize: 5, json: false });
     expect(String(fetchMock.mock.calls[0]![0])).toBe(
       "https://api.hevyapp.com/v1/workouts?page=2&pageSize=5",
     );
@@ -57,7 +61,7 @@ describe("getWorkout", () => {
   it("fetches and prints a single workout", async () => {
     fetchMock.mockResolvedValue(jsonResponse(WORKOUT));
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await getWorkout("w1", { json: false });
+    await getWorkout(client, "w1", { json: false });
     expect(String(fetchMock.mock.calls[0]![0])).toBe(
       "https://api.hevyapp.com/v1/workouts/w1",
     );
@@ -66,33 +70,39 @@ describe("getWorkout", () => {
 });
 
 describe("createWorkout", () => {
-  it("POSTs JSON read from stdin wrapped in workout envelope", async () => {
+  it("POSTs JSON read from stdin wrapped in workout envelope, stripping server fields", async () => {
     fetchMock.mockResolvedValue(jsonResponse({ ...WORKOUT, id: "w2" }, 201));
     const stdin = Readable.from([JSON.stringify(WORKOUT)]);
     vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await createWorkout({ json: true, stdin });
+    await createWorkout(client, { json: true, stdin });
     const init = fetchMock.mock.calls[0]![1] as RequestInit;
     expect(init.method).toBe("POST");
-    expect(JSON.parse(init.body as string)).toMatchObject({
-      workout: { title: "Morning Lift" },
-    });
+    const sent = JSON.parse(init.body as string) as { workout: Record<string, unknown> };
+    expect(sent).toMatchObject({ workout: { title: "Morning Lift" } });
+    expect(sent.workout).not.toHaveProperty("id");
+    expect(sent.workout).not.toHaveProperty("updated_at");
+    expect(sent.workout).not.toHaveProperty("created_at");
   });
 });
 
 describe("editWorkout", () => {
-  it("with --file -, reads stdin and PUTs", async () => {
+  it("with --file -, reads stdin and PUTs without server-managed fields", async () => {
     const updated = { ...WORKOUT, title: "Morning Lift v2" };
     fetchMock
       .mockResolvedValueOnce(jsonResponse(WORKOUT))
       .mockResolvedValueOnce(jsonResponse(updated));
     const stdin = Readable.from([JSON.stringify(updated)]);
     vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await editWorkout("w1", { file: "-", json: true, stdin });
+    await editWorkout(client, "w1", { file: "-", json: true, stdin });
     const putCall = fetchMock.mock.calls[1]!;
     expect((putCall[1] as RequestInit).method).toBe("PUT");
-    expect(JSON.parse((putCall[1] as RequestInit).body as string)).toMatchObject({
-      workout: { title: "Morning Lift v2" },
-    });
+    const sent = JSON.parse((putCall[1] as RequestInit).body as string) as {
+      workout: Record<string, unknown>;
+    };
+    expect(sent).toMatchObject({ workout: { title: "Morning Lift v2" } });
+    expect(sent.workout).not.toHaveProperty("id");
+    expect(sent.workout).not.toHaveProperty("updated_at");
+    expect(sent.workout).not.toHaveProperty("created_at");
   });
 });
 
@@ -100,7 +110,7 @@ describe("countWorkouts", () => {
   it("prints '<n> workouts'", async () => {
     fetchMock.mockResolvedValue(jsonResponse({ workout_count: 99 }));
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await countWorkouts({ json: false });
+    await countWorkouts(client, { json: false });
     expect(String(fetchMock.mock.calls[0]![0])).toBe(
       "https://api.hevyapp.com/v1/workouts/count",
     );
@@ -121,7 +131,7 @@ describe("listWorkoutEvents", () => {
       }),
     );
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await listWorkoutEvents({ page: 1, pageSize: 5, since: "2026-04-01T00:00:00Z", json: false });
+    await listWorkoutEvents(client, { page: 1, pageSize: 5, since: "2026-04-01T00:00:00Z", json: false });
     expect(String(fetchMock.mock.calls[0]![0])).toBe(
       "https://api.hevyapp.com/v1/workouts/events?page=1&pageSize=5&since=2026-04-01T00%3A00%3A00Z",
     );

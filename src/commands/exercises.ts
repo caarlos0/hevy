@@ -1,4 +1,4 @@
-import { request } from "../api/client.js";
+import type { Client } from "../api/client.js";
 import {
   formatExerciseDetail,
   formatExerciseList,
@@ -6,6 +6,29 @@ import {
   type HistoryEntry,
 } from "../format/exercises.js";
 import { writeJson } from "../io.js";
+
+export const EXERCISE_TYPES = [
+  "weight_reps",
+  "reps_only",
+  "bodyweight_reps",
+  "bodyweight_assisted_reps",
+  "duration",
+  "weight_duration",
+  "distance_duration",
+  "short_distance_weight",
+] as const;
+
+export const EQUIPMENT_CATEGORIES = [
+  "none",
+  "barbell",
+  "dumbbell",
+  "kettlebell",
+  "machine",
+  "plate",
+  "resistance_band",
+  "suspension",
+  "other",
+] as const;
 
 interface Template {
   id: string;
@@ -27,35 +50,11 @@ interface HistoryResponse {
   exercise_history: HistoryEntry[];
 }
 
-export async function listExercises(opts: {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  json?: boolean;
-}): Promise<void> {
-  if (opts.search) {
-    const needle = opts.search.toLowerCase();
-    const all: Template[] = [];
-    let page = 1;
-    let pageCount = 1;
-    do {
-      const data = await request<ApiResponse>("GET", "/v1/exercise_templates", {
-        query: { page, pageSize: opts.pageSize },
-      });
-      all.push(...data.exercise_templates);
-      pageCount = data.page_count;
-      page++;
-    } while (page <= pageCount);
-    const items = all.filter((e) => e.title.toLowerCase().includes(needle));
-    if (opts.json) {
-      writeJson({ page: 1, page_count: 1, exercise_templates: items });
-      return;
-    }
-    process.stdout.write(formatExerciseList(items) + "\n");
-    return;
-  }
-
-  const data = await request<ApiResponse>("GET", "/v1/exercise_templates", {
+export async function listExercises(
+  client: Client,
+  opts: { page?: number; pageSize?: number; json?: boolean },
+): Promise<void> {
+  const data = await client.request<ApiResponse>("GET", "/v1/exercise_templates", {
     query: { page: opts.page, pageSize: opts.pageSize },
   });
   if (opts.json) {
@@ -66,10 +65,11 @@ export async function listExercises(opts: {
 }
 
 export async function getExercise(
+  client: Client,
   id: string,
   opts: { json?: boolean },
 ): Promise<void> {
-  const tmpl = await request<Template>(
+  const tmpl = await client.request<Template>(
     "GET",
     `/v1/exercise_templates/${encodeURIComponent(id)}`,
   );
@@ -80,14 +80,17 @@ export async function getExercise(
   process.stdout.write(formatExerciseDetail(tmpl) + "\n");
 }
 
-export async function createCustomExercise(opts: {
-  title: string;
-  type: string;
-  equipment: string;
-  muscle: string;
-  otherMuscles?: string[];
-  json?: boolean;
-}): Promise<void> {
+export async function createCustomExercise(
+  client: Client,
+  opts: {
+    title: string;
+    type: string;
+    equipment: string;
+    muscle: string;
+    otherMuscles?: string[];
+    json?: boolean;
+  },
+): Promise<void> {
   const title = opts.title.trim();
   if (!title) throw new Error("exercise title cannot be empty");
   const exercise = {
@@ -97,7 +100,7 @@ export async function createCustomExercise(opts: {
     muscle_group: opts.muscle,
     other_muscles: opts.otherMuscles ?? [],
   };
-  const created = await request<{ id: number }>(
+  const created = await client.request<{ id: number }>(
     "POST",
     "/v1/exercise_templates",
     { body: { exercise } },
@@ -107,10 +110,11 @@ export async function createCustomExercise(opts: {
 }
 
 export async function getExerciseHistory(
+  client: Client,
   id: string,
   opts: { startDate?: string; endDate?: string; json?: boolean },
 ): Promise<void> {
-  const data = await request<HistoryResponse>(
+  const data = await client.request<HistoryResponse>(
     "GET",
     `/v1/exercise_history/${encodeURIComponent(id)}`,
     { query: { start_date: opts.startDate, end_date: opts.endDate } },

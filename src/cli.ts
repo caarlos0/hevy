@@ -1,7 +1,10 @@
-import { Command } from "commander";
+import { Command, InvalidArgumentError } from "commander";
 import pkg from "../package.json" with { type: "json" };
+import type { Client } from "./api/client.js";
 import {
   createCustomExercise,
+  EQUIPMENT_CATEGORIES,
+  EXERCISE_TYPES,
   getExercise,
   getExerciseHistory,
   listExercises,
@@ -24,260 +27,202 @@ import {
   listWorkouts,
 } from "./commands/workouts.js";
 
-export function buildProgram(): Command {
+interface PageOpts { page?: number; pageSize?: number }
+interface JsonOpt { json: boolean }
+type ListOpts = PageOpts & JsonOpt;
+interface FileOpts { file?: string }
+
+function withJson(cmd: Command): Command {
+  return cmd.option("--json", "emit raw JSON", false);
+}
+
+function withPaging(cmd: Command): Command {
+  return cmd
+    .option("--page <n>", "page number", parseIntOpt)
+    .option("--page-size <n>", "page size", parseIntOpt);
+}
+
+function withFile(cmd: Command): Command {
+  return cmd.option("--file <path>", "read JSON from file (use - for stdin)");
+}
+
+export function buildProgram(client: Client): Command {
   const program = new Command();
   program
     .name("hevy")
-    .description("CLI for managing Hevy routines")
+    .description("CLI for the Hevy API")
     .version(pkg.version)
     .showHelpAfterError();
 
-  program
-    .command("whoami")
-    .description("Show the authenticated user")
-    .option("--json", "emit raw JSON", false)
-    .action(async (opts: { json: boolean }) => {
-      await whoami(opts);
+  withJson(program.command("whoami").description("Show the authenticated user"))
+    .action(async (opts: JsonOpt) => {
+      await whoami(client, opts);
     });
 
   const routines = program.command("routines").description("Manage routines");
 
-  routines
-    .command("list")
-    .description("List your routines")
-    .option("--page <n>", "page number", parseIntOpt)
-    .option("--page-size <n>", "page size", parseIntOpt)
-    .option("--json", "emit raw JSON", false)
-    .action(async (opts: { page?: number; pageSize?: number; json: boolean }) => {
-      await listRoutines(opts);
+  withJson(withPaging(routines.command("list").description("List your routines")))
+    .action(async (opts: ListOpts) => {
+      await listRoutines(client, opts);
     });
 
-  routines
-    .command("get <id>")
-    .description("Show a single routine")
-    .option("--json", "emit raw JSON", false)
-    .action(async (id: string, opts: { json: boolean }) => {
-      await getRoutine(id, opts);
+  withJson(routines.command("get <id>").description("Show a single routine"))
+    .action(async (id: string, opts: JsonOpt) => {
+      await getRoutine(client, id, opts);
     });
 
-  routines
-    .command("create")
-    .description("Create a routine from JSON (stdin or --file)")
-    .option("--file <path>", "read JSON from file (use - for stdin)")
-    .option("--json", "emit raw JSON", false)
-    .action(async (opts: { file?: string; json: boolean }) => {
-      await createRoutine(opts);
-    });
+  withJson(withFile(
+    routines.command("create").description("Create a routine from JSON (stdin or --file)"),
+  )).action(async (opts: FileOpts & JsonOpt) => {
+    await createRoutine(client, opts);
+  });
 
-  routines
-    .command("edit <id>")
-    .description("Edit a routine (opens $EDITOR if no --file/stdin)")
-    .option("--file <path>", "read JSON from file (use - for stdin)")
-    .option("--json", "emit raw JSON", false)
-    .action(async (id: string, opts: { file?: string; json: boolean }) => {
-      await editRoutine(id, opts);
-    });
+  withJson(withFile(
+    routines.command("edit <id>").description("Edit a routine (opens $VISUAL/$EDITOR if no --file/stdin)"),
+  )).action(async (id: string, opts: FileOpts & JsonOpt) => {
+    await editRoutine(client, id, opts);
+  });
 
   const folders = program.command("folders").description("Manage routine folders");
 
-  folders
-    .command("list")
-    .description("List your routine folders")
-    .option("--page <n>", "page number", parseIntOpt)
-    .option("--page-size <n>", "page size", parseIntOpt)
-    .option("--json", "emit raw JSON", false)
-    .action(async (opts: { page?: number; pageSize?: number; json: boolean }) => {
-      await listFolders(opts);
+  withJson(withPaging(folders.command("list").description("List your routine folders")))
+    .action(async (opts: ListOpts) => {
+      await listFolders(client, opts);
     });
 
-  folders
-    .command("get <id>")
-    .description("Show a single routine folder")
-    .option("--json", "emit raw JSON", false)
-    .action(async (id: string, opts: { json: boolean }) => {
-      await getFolder(id, opts);
+  withJson(folders.command("get <id>").description("Show a single routine folder"))
+    .action(async (id: string, opts: JsonOpt) => {
+      await getFolder(client, id, opts);
     });
 
-  folders
-    .command("create <title...>")
-    .description("Create a routine folder with the given title")
-    .option("--json", "emit raw JSON", false)
-    .action(async (title: string[], opts: { json: boolean }) => {
-      await createFolder({ title: title.join(" "), json: opts.json });
+  withJson(folders.command("create <title...>").description("Create a routine folder with the given title"))
+    .action(async (title: string[], opts: JsonOpt) => {
+      await createFolder(client, { title: title.join(" "), json: opts.json });
     });
 
   const exercises = program.command("exercises").description("Browse exercise templates");
-  exercises
-    .command("list")
-    .description("List exercise templates")
-    .option("--search <term>", "filter by title (case-insensitive substring)")
-    .option("--page <n>", "page number", parseIntOpt)
-    .option("--page-size <n>", "page size", parseIntOpt)
-    .option("--json", "emit raw JSON", false)
-    .action(
-      async (opts: { search?: string; page?: number; pageSize?: number; json: boolean }) => {
-        await listExercises(opts);
-      },
-    );
 
-  exercises
-    .command("get <id>")
-    .description("Show a single exercise template")
-    .option("--json", "emit raw JSON", false)
-    .action(async (id: string, opts: { json: boolean }) => {
-      await getExercise(id, opts);
+  withJson(withPaging(exercises.command("list").description("List exercise templates")))
+    .action(async (opts: ListOpts) => {
+      await listExercises(client, opts);
     });
 
-  exercises
-    .command("create")
-    .description("Create a custom exercise template")
-    .requiredOption("--title <title>", "exercise title")
-    .requiredOption(
-      "--type <type>",
-      "weight_reps|reps_only|bodyweight_reps|bodyweight_assisted_reps|duration|weight_duration|distance_duration|short_distance_weight",
-    )
-    .requiredOption(
-      "--equipment <category>",
-      "none|barbell|dumbbell|kettlebell|machine|plate|resistance_band|suspension|other",
-    )
-    .requiredOption("--muscle <group>", "primary muscle group")
-    .option("--other-muscles <list>", "comma-separated muscle groups", csvList)
-    .option("--json", "emit raw JSON", false)
-    .action(
-      async (opts: {
-        title: string;
-        type: string;
-        equipment: string;
-        muscle: string;
-        otherMuscles?: string[];
-        json: boolean;
-      }) => {
-        await createCustomExercise(opts);
-      },
-    );
+  withJson(exercises.command("get <id>").description("Show a single exercise template"))
+    .action(async (id: string, opts: JsonOpt) => {
+      await getExercise(client, id, opts);
+    });
 
-  exercises
-    .command("history <id>")
-    .description("Show history entries for an exercise template")
-    .option("--start <date>", "start date (ISO 8601)")
-    .option("--end <date>", "end date (ISO 8601)")
-    .option("--json", "emit raw JSON", false)
-    .action(
-      async (
-        id: string,
-        opts: { start?: string; end?: string; json: boolean },
-      ) => {
-        await getExerciseHistory(id, {
-          startDate: opts.start,
-          endDate: opts.end,
-          json: opts.json,
-        });
-      },
-    );
+  withJson(
+    exercises
+      .command("create")
+      .description("Create a custom exercise template")
+      .requiredOption("--title <title>", "exercise title")
+      .requiredOption(
+        "--type <type>",
+        EXERCISE_TYPES.join("|"),
+        choices(EXERCISE_TYPES, "--type"),
+      )
+      .requiredOption(
+        "--equipment <category>",
+        EQUIPMENT_CATEGORIES.join("|"),
+        choices(EQUIPMENT_CATEGORIES, "--equipment"),
+      )
+      .requiredOption("--muscle <group>", "primary muscle group")
+      .option("--other-muscles <list>", "comma-separated muscle groups", csvList),
+  ).action(
+    async (opts: {
+      title: string;
+      type: string;
+      equipment: string;
+      muscle: string;
+      otherMuscles?: string[];
+      json: boolean;
+    }) => {
+      await createCustomExercise(client, opts);
+    },
+  );
+
+  withJson(
+    exercises
+      .command("history <id>")
+      .description("Show history entries for an exercise template")
+      .option("--start <date>", "start date (ISO 8601)")
+      .option("--end <date>", "end date (ISO 8601)"),
+  ).action(
+    async (id: string, opts: { start?: string; end?: string; json: boolean }) => {
+      await getExerciseHistory(client, id, {
+        startDate: opts.start,
+        endDate: opts.end,
+        json: opts.json,
+      });
+    },
+  );
 
   const workouts = program.command("workouts").description("Manage workouts");
 
-  workouts
-    .command("list")
-    .description("List your workouts")
-    .option("--page <n>", "page number", parseIntOpt)
-    .option("--page-size <n>", "page size", parseIntOpt)
-    .option("--json", "emit raw JSON", false)
-    .action(async (opts: { page?: number; pageSize?: number; json: boolean }) => {
-      await listWorkouts(opts);
+  withJson(withPaging(workouts.command("list").description("List your workouts")))
+    .action(async (opts: ListOpts) => {
+      await listWorkouts(client, opts);
     });
 
-  workouts
-    .command("get <id>")
-    .description("Show a single workout")
-    .option("--json", "emit raw JSON", false)
-    .action(async (id: string, opts: { json: boolean }) => {
-      await getWorkout(id, opts);
+  withJson(workouts.command("get <id>").description("Show a single workout"))
+    .action(async (id: string, opts: JsonOpt) => {
+      await getWorkout(client, id, opts);
     });
 
-  workouts
-    .command("create")
-    .description("Create a workout from JSON (stdin or --file)")
-    .option("--file <path>", "read JSON from file (use - for stdin)")
-    .option("--json", "emit raw JSON", false)
-    .action(async (opts: { file?: string; json: boolean }) => {
-      await createWorkout(opts);
+  withJson(withFile(
+    workouts.command("create").description("Create a workout from JSON (stdin or --file)"),
+  )).action(async (opts: FileOpts & JsonOpt) => {
+    await createWorkout(client, opts);
+  });
+
+  withJson(withFile(
+    workouts.command("edit <id>").description("Edit a workout (opens $VISUAL/$EDITOR if no --file/stdin)"),
+  )).action(async (id: string, opts: FileOpts & JsonOpt) => {
+    await editWorkout(client, id, opts);
+  });
+
+  withJson(workouts.command("count").description("Show the total number of workouts"))
+    .action(async (opts: JsonOpt) => {
+      await countWorkouts(client, opts);
     });
 
-  workouts
-    .command("edit <id>")
-    .description("Edit a workout (opens $EDITOR if no --file/stdin)")
-    .option("--file <path>", "read JSON from file (use - for stdin)")
-    .option("--json", "emit raw JSON", false)
-    .action(async (id: string, opts: { file?: string; json: boolean }) => {
-      await editWorkout(id, opts);
-    });
-
-  workouts
-    .command("count")
-    .description("Show the total number of workouts")
-    .option("--json", "emit raw JSON", false)
-    .action(async (opts: { json: boolean }) => {
-      await countWorkouts(opts);
-    });
-
-  workouts
-    .command("events")
-    .description("Show workout update/delete events since a date")
-    .option("--page <n>", "page number", parseIntOpt)
-    .option("--page-size <n>", "page size", parseIntOpt)
-    .option("--since <date>", "ISO 8601 timestamp (default: 1970-01-01)")
-    .option("--json", "emit raw JSON", false)
-    .action(
-      async (opts: {
-        page?: number;
-        pageSize?: number;
-        since?: string;
-        json: boolean;
-      }) => {
-        await listWorkoutEvents(opts);
-      },
-    );
+  withJson(
+    withPaging(workouts.command("events").description("Show workout update/delete events since a date"))
+      .option("--since <date>", "ISO 8601 timestamp (default: 1970-01-01)"),
+  ).action(
+    async (opts: ListOpts & { since?: string }) => {
+      await listWorkoutEvents(client, opts);
+    },
+  );
 
   const measurements = program
     .command("measurements")
     .description("Manage body measurements");
 
-  measurements
-    .command("list")
-    .description("List your body measurements")
-    .option("--page <n>", "page number", parseIntOpt)
-    .option("--page-size <n>", "page size", parseIntOpt)
-    .option("--json", "emit raw JSON", false)
-    .action(async (opts: { page?: number; pageSize?: number; json: boolean }) => {
-      await listMeasurements(opts);
+  withJson(withPaging(measurements.command("list").description("List your body measurements")))
+    .action(async (opts: ListOpts) => {
+      await listMeasurements(client, opts);
     });
 
-  measurements
-    .command("get <date>")
-    .description("Show a body measurement (date as YYYY-MM-DD)")
-    .option("--json", "emit raw JSON", false)
-    .action(async (date: string, opts: { json: boolean }) => {
-      await getMeasurement(date, opts);
+  withJson(measurements.command("get <date>").description("Show a body measurement (date as YYYY-MM-DD)"))
+    .action(async (date: string, opts: JsonOpt) => {
+      await getMeasurement(client, date, opts);
     });
 
-  measurements
-    .command("create")
-    .description("Create a body measurement from JSON (stdin or --file)")
-    .option("--file <path>", "read JSON from file (use - for stdin)")
-    .option("--json", "emit raw JSON", false)
-    .action(async (opts: { file?: string; json: boolean }) => {
-      await createMeasurement(opts);
-    });
+  withJson(withFile(
+    measurements.command("create").description("Create a body measurement from JSON (stdin or --file)"),
+  )).action(async (opts: FileOpts & JsonOpt) => {
+    await createMeasurement(client, opts);
+  });
 
-  measurements
-    .command("edit <date>")
-    .description("Edit a body measurement (opens $EDITOR if no --file/stdin)")
-    .option("--file <path>", "read JSON from file (use - for stdin)")
-    .option("--json", "emit raw JSON", false)
-    .action(async (date: string, opts: { file?: string; json: boolean }) => {
-      await editMeasurement(date, opts);
-    });
+  withJson(withFile(
+    measurements
+      .command("edit <date>")
+      .description("Edit a body measurement (opens $VISUAL/$EDITOR if no --file/stdin)"),
+  )).action(async (date: string, opts: FileOpts & JsonOpt) => {
+    await editMeasurement(client, date, opts);
+  });
 
   return program;
 }
@@ -285,7 +230,7 @@ export function buildProgram(): Command {
 function parseIntOpt(value: string): number {
   const n = Number(value);
   if (!Number.isInteger(n) || n < 1) {
-    throw new Error(`expected positive integer, got "${value}"`);
+    throw new InvalidArgumentError(`expected positive integer, got "${value}"`);
   }
   return n;
 }
@@ -295,4 +240,15 @@ function csvList(value: string): string[] {
     .split(",")
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
+}
+
+function choices<T extends string>(allowed: readonly T[], flag: string) {
+  return (value: string): T => {
+    if (!(allowed as readonly string[]).includes(value)) {
+      throw new InvalidArgumentError(
+        `${flag} must be one of: ${allowed.join(", ")}`,
+      );
+    }
+    return value as T;
+  };
 }
