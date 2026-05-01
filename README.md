@@ -23,15 +23,21 @@ hevy routines     list | get <id> | create --file f.json | edit <id> [--file f.j
 hevy folders      list | get <id> | create <title...>
 hevy workouts     list | get <id> | create --file f.json | edit <id> [--file f.json]
 hevy workouts     count | events [--since <iso>]
-hevy exercises    list [--search t] | get <id> | history <id> [--start <iso>] [--end <iso>]
+hevy exercises    list | get <id> | history <id> [--start <iso>] [--end <iso>]
 hevy exercises    create --title T --type weight_reps --equipment dumbbell --muscle quadriceps
 hevy measurements list | get <date> | create --file f.json | edit <date> [--file f.json]
 ```
 
 Common flags: `--page N`, `--page-size N`, `--json` (raw API response).
 
-`edit` without `--file` opens `$EDITOR`. `--file -` reads stdin, so you can
-round-trip:
+`exercises list` paginates server-side; pipe through `grep` to filter:
+
+```sh
+hevy exercises list --page-size 100 | grep -i squat
+```
+
+`edit` without `--file` opens `$VISUAL` (falling back to `$EDITOR`, then `vi`).
+`--file -` reads stdin, so you can round-trip:
 
 ```sh
 hevy routines get r1 --json | jq '.title="renamed"' | hevy routines edit r1 --file -
@@ -64,7 +70,7 @@ directly (the CLI wraps it in `{ "workout": ... }` for the API):
 }
 ```
 
-Find `exercise_template_id` with `hevy exercises list --search "squat"`.
+Find `exercise_template_id` with `hevy exercises list | grep -i squat`.
 
 Set fields by exercise type:
 
