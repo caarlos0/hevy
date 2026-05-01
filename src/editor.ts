@@ -15,8 +15,10 @@ export async function editJson<T>(initial: T, name = "payload.json"): Promise<Ed
   const original = JSON.stringify(initial, null, 2);
   writeFileSync(file, original + "\n");
 
-  const editor = process.env.EDITOR ?? "vi";
-  const res = spawnSync(editor, [file], { stdio: "inherit", shell: true });
+  const editorEnv = process.env.EDITOR ?? "vi";
+  const [editor, ...editorArgs] = editorEnv.split(/\s+/).filter((s) => s.length > 0);
+  if (!editor) throw new Error("EDITOR is set but empty");
+  const res = spawnSync(editor, [...editorArgs, file], { stdio: "inherit" });
   if (res.status !== 0) {
     throw new Error(`editor exited with status ${res.status}; edits saved at ${file}`);
   }
