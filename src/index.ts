@@ -1,3 +1,4 @@
+import { CommanderError } from "commander";
 import { setApiKey } from "./api/client.js";
 import { HevyError } from "./api/errors.js";
 import { buildProgram } from "./cli.js";
@@ -33,12 +34,11 @@ function handle(err: unknown): never {
     }
     process.exit(1);
   }
-  // commander.exitOverride throws CommanderError on usage problems, --help, --version
-  if (err && typeof err === "object" && "code" in err && typeof (err as { code: unknown }).code === "string") {
-    const ce = err as { exitCode?: number; message?: string };
-    const code = ce.exitCode ?? 64;
-    if (code !== 0 && ce.message) process.stderr.write(`${ce.message}\n`);
-    process.exit(code);
+  if (err instanceof CommanderError) {
+    if (err.exitCode !== 0 && err.message) {
+      process.stderr.write(`${err.message}\n`);
+    }
+    process.exit(err.exitCode);
   }
   const msg = err instanceof Error ? err.message : String(err);
   process.stderr.write(`error: ${msg}\n`);
