@@ -1,6 +1,5 @@
 src/
 test/
-scripts/
 docs/
 .github/
 *.config.ts

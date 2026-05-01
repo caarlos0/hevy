@@ -3,9 +3,16 @@
   "version": "0.0.0",
   "description": "CLI for managing Hevy routines via the public Hevy API",
   "type": "module",
-  "bin": { "hevy": "./dist/index.cjs" },
-  "files": ["dist", "README.md"],
-  "engines": { "node": ">=20" },
+  "bin": {
+    "hevy": "./dist/index.cjs"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/index.ts",
@@ -13,7 +20,6 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "gen:types": "tsx scripts/gen-types.ts",
     "prepublishOnly": "npm run lint && npm test && npm run build"
   },
   "dependencies": {
@@ -24,7 +30,6 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",
-    "openapi-typescript": "^7.0.0",
     "prettier": "^3.3.0",
     "tsup": "^8.2.0",
     "tsx": "^4.16.0",
