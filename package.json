@@ -1,5 +1,8 @@
 {
-  "name": "hevy",
+  "name": "@caarlos0/hevy",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.0.0",
   "description": "CLI for managing Hevy routines via the public Hevy API",
   "type": "module",
