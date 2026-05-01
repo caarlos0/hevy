@@ -3,17 +3,18 @@ import { HevyError, UsageError } from "./api/errors.js";
 import { buildProgram } from "./cli.js";
 
 async function main(): Promise<void> {
-  const key = process.env.HEVY_API_KEY;
-  if (!key || key.trim().length === 0) {
-    process.stderr.write(
-      "error: HEVY_API_KEY is not set. Get an API key at https://hevy.com/settings?api\n",
-    );
-    process.exit(1);
-  }
-  setApiKey(key);
-
   const program = buildProgram();
   program.exitOverride();
+  program.hook("preAction", () => {
+    const key = process.env.HEVY_API_KEY;
+    if (!key || key.trim().length === 0) {
+      process.stderr.write(
+        "error: HEVY_API_KEY is not set. Get an API key at https://hevy.com/settings?api\n",
+      );
+      process.exit(1);
+    }
+    setApiKey(key);
+  });
   try {
     await program.parseAsync(process.argv);
   } catch (err) {
@@ -36,11 +37,12 @@ function handle(err: unknown): never {
     process.stderr.write(`error: ${err.message}\n`);
     process.exit(64);
   }
-  // commander.exitOverride throws CommanderError on usage problems
+  // commander.exitOverride throws CommanderError on usage problems, --help, --version
   if (err && typeof err === "object" && "code" in err && typeof (err as { code: unknown }).code === "string") {
     const ce = err as { exitCode?: number; message?: string };
-    if (ce.message) process.stderr.write(`${ce.message}\n`);
-    process.exit(ce.exitCode ?? 64);
+    const code = ce.exitCode ?? 64;
+    if (code !== 0 && ce.message) process.stderr.write(`${ce.message}\n`);
+    process.exit(code);
   }
   const msg = err instanceof Error ? err.message : String(err);
   process.stderr.write(`error: ${msg}\n`);

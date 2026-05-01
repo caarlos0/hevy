@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import pkg from "../package.json" with { type: "json" };
 import {
   createCustomExercise,
   getExercise,
@@ -28,6 +29,7 @@ export function buildProgram(): Command {
   program
     .name("hevy")
     .description("CLI for managing Hevy routines")
+    .version(pkg.version)
     .showHelpAfterError();
 
   program
