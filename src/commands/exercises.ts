@@ -33,19 +33,36 @@ export async function listExercises(opts: {
   search?: string;
   json?: boolean;
 }): Promise<void> {
+  if (opts.search) {
+    const needle = opts.search.toLowerCase();
+    const all: Template[] = [];
+    let page = 1;
+    let pageCount = 1;
+    do {
+      const data = await request<ApiResponse>("GET", "/v1/exercise_templates", {
+        query: { page, pageSize: opts.pageSize },
+      });
+      all.push(...data.exercise_templates);
+      pageCount = data.page_count;
+      page++;
+    } while (page <= pageCount);
+    const items = all.filter((e) => e.title.toLowerCase().includes(needle));
+    if (opts.json) {
+      writeJson({ page: 1, page_count: 1, exercise_templates: items });
+      return;
+    }
+    process.stdout.write(formatExerciseList(items) + "\n");
+    return;
+  }
+
   const data = await request<ApiResponse>("GET", "/v1/exercise_templates", {
     query: { page: opts.page, pageSize: opts.pageSize },
   });
-  let items = data.exercise_templates;
-  if (opts.search) {
-    const needle = opts.search.toLowerCase();
-    items = items.filter((e) => e.title.toLowerCase().includes(needle));
-  }
   if (opts.json) {
-    writeJson({ ...data, exercise_templates: items });
+    writeJson(data);
     return;
   }
-  process.stdout.write(formatExerciseList(items) + "\n");
+  process.stdout.write(formatExerciseList(data.exercise_templates) + "\n");
 }
 
 export async function getExercise(

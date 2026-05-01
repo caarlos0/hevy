@@ -37,25 +37,40 @@ describe("listExercises", () => {
     expect(out).toContain("Bench");
   });
 
-  it("filters client-side when --search is given", async () => {
-    fetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          page: 1,
-          page_count: 1,
-          exercise_templates: [
-            { id: "e1", title: "Squat", primary_muscle_group: "legs" },
-            { id: "e2", title: "Bench Press", primary_muscle_group: "chest" },
-          ],
-        }),
-        { status: 200, headers: { "content-type": "application/json" } },
-      ),
-    );
+  it("walks all pages and filters when --search is given", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            page: 1,
+            page_count: 2,
+            exercise_templates: [
+              { id: "e1", title: "Squat", primary_muscle_group: "legs" },
+              { id: "e2", title: "Deadlift", primary_muscle_group: "back" },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            page: 2,
+            page_count: 2,
+            exercise_templates: [
+              { id: "e3", title: "Bench Press", primary_muscle_group: "chest" },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
     const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     await listExercises({ search: "bench", json: false });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     const out = spy.mock.calls.map((c) => c[0]).join("");
     expect(out).toContain("Bench Press");
     expect(out).not.toContain("Squat");
+    expect(out).not.toContain("Deadlift");
   });
 });
 
