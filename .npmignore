@@ -1,0 +1,10 @@
+src/
+test/
+scripts/
+docs/
+.github/
+*.config.ts
+*.config.js
+tsconfig.json
+.editorconfig
+.prettierrc.json
