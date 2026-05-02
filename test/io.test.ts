@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
 import { describe, expect, it, vi } from "vitest";
-import { readStdin, writeJson } from "../src/io.js";
+import { readJsonPayload, readStdin, writeJson } from "../src/io.js";
 
 describe("readStdin", () => {
   it("reads UTF-8 text from a stream", async () => {
@@ -10,6 +10,17 @@ describe("readStdin", () => {
 
   it("returns empty string for empty stream", async () => {
     await expect(readStdin(Readable.from([]))).resolves.toBe("");
+  });
+});
+
+describe("readJsonPayload", () => {
+  it("fails fast when no file is provided and stdin is a TTY", async () => {
+    const stdin = Readable.from([]) as Readable & { isTTY?: boolean };
+    stdin.isTTY = true;
+
+    await expect(readJsonPayload(undefined, stdin, "workout")).rejects.toThrow(
+      "provide JSON via --file <path> or pipe stdin",
+    );
   });
 });
 

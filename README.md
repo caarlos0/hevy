@@ -14,6 +14,9 @@ Get an API key from <https://hevy.com/settings?api>:
 export HEVY_API_KEY=...
 ```
 
+`hevy --help` and `hevy --version` work without an API key. API commands
+require `HEVY_API_KEY`.
+
 ## Commands
 
 ```sh
@@ -29,6 +32,41 @@ hevy measurements list | get <date> | create --file f.json | edit <date> [--file
 ```
 
 Common flags: `--page N`, `--page-size N`, `--json` (raw API response).
+
+## Machine-readable usage
+
+Use `--json` for scripts and agents. Human-readable output is for terminals;
+JSON output is the raw API response printed to stdout.
+
+Create and edit commands read a JSON object directly, not an API envelope:
+
+```sh
+hevy workouts create --file examples/workout.json --json
+hevy routines edit r1 --file examples/routine.json --json
+hevy measurements create --file examples/measurement.json --json
+```
+
+Use `--file -` for stdin:
+
+```sh
+hevy workouts get w1 --json \
+  | jq '.title = "renamed"' \
+  | hevy workouts edit w1 --file - --json
+```
+
+If `--file` is omitted, create commands read piped stdin. They fail instead of
+waiting when stdin is a TTY:
+
+```sh
+jq '.title = "copy"' examples/routine.json | hevy routines create --json
+```
+
+For routines and workouts, the CLI wraps the object for the API and strips
+server-managed fields (`id`, `created_at`, `updated_at`) before creating or
+editing. Measurements are sent as the object itself; measurement edits strip
+`date` from the PUT body because the date is part of the URL.
+
+Errors are written to stderr and return a non-zero exit code.
 
 `exercises list` paginates server-side; pipe through `grep` to filter:
 

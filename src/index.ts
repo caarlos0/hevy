@@ -1,22 +1,25 @@
 import { CommanderError } from "commander";
 import pkg from "../package.json" with { type: "json" };
-import { createClient } from "./api/client.js";
+import { createClient, type Client } from "./api/client.js";
 import { HevyError } from "./api/errors.js";
 import { buildProgram } from "./cli.js";
 
 async function main(): Promise<void> {
   const key = process.env.HEVY_API_KEY;
-  if (!key || key.trim().length === 0) {
+  const hasKey = key !== undefined && key.trim().length > 0;
+  if (!hasKey && !allowsMissingApiKey(process.argv)) {
     process.stderr.write(
       "error: HEVY_API_KEY is not set. Get an API key at https://hevy.com/settings?api\n",
     );
     process.exit(1);
   }
 
-  const client = createClient({
-    apiKey: key,
-    userAgent: `hevy-cli/${pkg.version}`,
-  });
+  const client = hasKey
+    ? createClient({
+        apiKey: key,
+        userAgent: `hevy-cli/${pkg.version}`,
+      })
+    : unavailableClient();
 
   const program = buildProgram(client);
   program.exitOverride();
@@ -25,6 +28,19 @@ async function main(): Promise<void> {
   } catch (err) {
     handle(err);
   }
+}
+
+function allowsMissingApiKey(argv: string[]): boolean {
+  const args = argv.slice(2);
+  return args.some((arg) => ["--help", "-h", "--version", "-V"].includes(arg))
+    || args[0] === "help";
+}
+
+function unavailableClient(): Client {
+  async function request(): Promise<never> {
+    throw new Error("HEVY_API_KEY is not set");
+  }
+  return { request, requestMaybe: request };
 }
 
 function handle(err: unknown): never {

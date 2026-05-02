@@ -1,0 +1,27 @@
+{
+  "title": "Friday Leg Day",
+  "description": "Quads focus",
+  "start_time": "2026-05-02T12:00:00Z",
+  "end_time": "2026-05-02T12:45:00Z",
+  "is_private": false,
+  "exercises": [
+    {
+      "exercise_template_id": "D04AC939",
+      "superset_id": null,
+      "notes": "Controlled reps",
+      "sets": [
+        {
+          "type": "warmup",
+          "weight_kg": 60,
+          "reps": 8
+        },
+        {
+          "type": "normal",
+          "weight_kg": 100,
+          "reps": 10,
+          "rpe": 8
+        }
+      ]
+    }
+  ]
+}

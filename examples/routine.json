@@ -1,0 +1,22 @@
+{
+  "title": "Leg Day",
+  "folder_id": null,
+  "notes": "Squat focus",
+  "exercises": [
+    {
+      "title": "Back Squat",
+      "exercise_template_id": "D04AC939",
+      "superset_id": null,
+      "rest_seconds": 180,
+      "notes": "Pause the first rep",
+      "sets": [
+        {
+          "type": "normal",
+          "weight_kg": 100,
+          "reps": 5,
+          "rpe": 8
+        }
+      ]
+    }
+  ]
+}

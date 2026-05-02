@@ -32,6 +32,9 @@ export async function readJsonPayload<T>(
   stdin: Readable | undefined,
   kind: string,
 ): Promise<T> {
+  if (file === undefined && streamIsTTY(stdin)) {
+    throw new Error("provide JSON via --file <path> or pipe stdin");
+  }
   const fromStdin = file === undefined || file === "-";
   const raw = fromStdin ? await readStdin(stdin) : await readFile(file, "utf8");
   if (!raw.trim()) {
@@ -62,4 +65,9 @@ export async function resolveEditPayload<T>(
   }
   const result = await editJson<T>(current, tempName);
   return result.edited ? result.value : null;
+}
+
+function streamIsTTY(stream: Readable | undefined): boolean {
+  const s = (stream ?? process.stdin) as Readable & { isTTY?: boolean };
+  return Boolean(s.isTTY);
 }
