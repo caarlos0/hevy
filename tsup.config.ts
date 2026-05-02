@@ -4,7 +4,7 @@ export default defineConfig({
   entry: ["src/index.ts"],
   format: ["cjs"],
   target: "node20",
-  outDir: "dist",
+  outDir: "lib",
   clean: true,
   banner: { js: "#!/usr/bin/env node" },
   shims: false,

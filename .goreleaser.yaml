@@ -11,10 +11,11 @@ version: 2
 before:
   hooks:
     - npm ci
+    - npm run build
 
 builds:
   - builder: node
-    main: ./dist/index.cjs
+    main: ./lib/index.cjs
     targets:
       - darwin-arm64
       - darwin-x64
