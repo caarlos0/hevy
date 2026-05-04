@@ -7,7 +7,7 @@
   "description": "CLI for managing Hevy routines via the public Hevy API",
   "type": "module",
   "bin": {
-    "hevy": "./dist/index.cjs"
+    "hevy": "lib/index.cjs"
   },
   "files": [
     "dist",
