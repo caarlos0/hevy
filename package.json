@@ -27,6 +27,21 @@
     "prepublishOnly": "npm run lint && npm test && npm run build",
     "release": "./scripts/bump.sh"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/caarlos0/hevy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/caarlos0/hevy/issues"
+  },
+  "homepage": "https://github.com/caarlos0/hevy",
+  "keywords": [
+    "hevy",
+    "workout",
+    "routine",
+    "fitness",
+    "exercise"
+  ],
   "dependencies": {
     "commander": "^14.0.3"
   },
