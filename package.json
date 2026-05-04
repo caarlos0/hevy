@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "CLI for managing Hevy routines via the public Hevy API",
   "type": "module",
   "bin": {
@@ -15,7 +15,7 @@
     "README.md"
   ],
   "engines": {
-    "node": ">=25.5"
+    "node": ">=25.5 <26"
   },
   "scripts": {
     "build": "tsup",
@@ -24,7 +24,8 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "prepublishOnly": "npm run lint && npm test && npm run build"
+    "prepublishOnly": "npm run lint && npm test && npm run build",
+    "release": "./scripts/bump.sh"
   },
   "dependencies": {
     "commander": "^14.0.3"
