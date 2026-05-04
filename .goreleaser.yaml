@@ -11,7 +11,7 @@ pro: true
 
 after:
   hooks:
-    - npm publish
+    - "{{ if .IsRelease }}npm publish{{ end }}"
 
 before:
   hooks:
