@@ -4,12 +4,6 @@ CLI for the [Hevy API](https://api.hevyapp.com/docs/).
 
 ## Install
 
-Homebrew:
-
-```sh
-brew install caarlos0/tap/hevy
-```
-
 npm:
 
 ```sh
