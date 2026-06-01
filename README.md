@@ -4,9 +4,26 @@ CLI for the [Hevy API](https://api.hevyapp.com/docs/).
 
 ## Install
 
+Homebrew:
+
 ```sh
-npm install -g hevy
+brew install caarlos0/tap/hevy
 ```
+
+npm:
+
+```sh
+npm install -g @caarlos0/hevy
+```
+
+Or run without installing via npx:
+
+```sh
+npx @caarlos0/hevy --help
+```
+
+Prebuilt binaries for macOS, Linux, and Windows are also available on the
+[releases page](https://github.com/caarlos0/hevy/releases).
 
 Get an API key from <https://hevy.com/settings?api>:
 
