@@ -88,6 +88,43 @@ describe("createRoutine", () => {
     expect(sent.routine).not.toHaveProperty("created_at");
     expect(JSON.parse(spy.mock.calls.map((c) => c[0]).join(""))).toMatchObject({ id: "r2" });
   });
+
+  it("prints id and title from { routine } envelope on non-JSON success", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ routine: { ...ROUTINE, id: "r2" } }, 201),
+    );
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(ROUTINE)]);
+    await createRoutine(client, { json: false, stdin });
+    const out = spy.mock.calls.join("");
+    expect(out).toContain("Leg Day");
+    expect(out).toContain("r2");
+    expect(out).not.toContain("(untitled)");
+    expect(out).not.toContain("(?)");
+  });
+
+  it("still works when server returns a bare routine (no envelope)", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ ...ROUTINE, id: "r3" }, 201));
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(ROUTINE)]);
+    await createRoutine(client, { json: false, stdin });
+    const out = spy.mock.calls.join("");
+    expect(out).toContain("Leg Day");
+    expect(out).toContain("r3");
+  });
+
+  it("--json emits the unwrapped routine, NOT the envelope", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ routine: { ...ROUTINE, id: "r2" } }, 201),
+    );
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(ROUTINE)]);
+    await createRoutine(client, { json: true, stdin });
+    const out = spy.mock.calls.map((c) => String(c[0])).join("");
+    const parsed = JSON.parse(out);
+    expect(parsed).toMatchObject({ id: "r2", title: "Leg Day" });
+    expect(parsed).not.toHaveProperty("routine");
+  });
 });
 
 describe("editRoutine", () => {
@@ -117,5 +154,20 @@ describe("editRoutine", () => {
     await expect(editRoutine(client, "r1", { file: "-", json: true, stdin })).rejects.toThrow(
       /invalid JSON from stdin/i,
     );
+  });
+
+  it("prints id and title from { routine } envelope on non-JSON success", async () => {
+    const updated = { ...ROUTINE, title: "Leg Day v2" };
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({ routine: ROUTINE }))
+      .mockResolvedValueOnce(jsonResponse({ routine: updated }));
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(updated)]);
+    await editRoutine(client, "r1", { file: "-", json: false, stdin });
+    const out = spy.mock.calls.join("");
+    expect(out).toContain("Leg Day v2");
+    expect(out).toContain("r1");
+    expect(out).not.toContain("(untitled)");
+    expect(out).not.toContain("(?)");
   });
 });

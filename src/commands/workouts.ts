@@ -48,6 +48,18 @@ interface CountResponse {
   workout_count: number;
 }
 
+interface SingleResponse {
+  workout?: Workout;
+}
+
+function unwrapWorkout(data: SingleResponse | Workout, ctx: string): Workout {
+  // Accept either the documented envelope ({ workout: {...} }) or a bare
+  // workout, so we stay forward-compatible with any API shape change.
+  if ("workout" in data && data.workout) return data.workout;
+  if ("id" in data || "title" in data) return data as Workout;
+  throw new Error(`unexpected empty response from ${ctx}`);
+}
+
 interface EventsResponse {
   page: number;
   page_count: number;
@@ -94,9 +106,10 @@ export async function createWorkout(
   opts: { file?: string; json?: boolean; stdin?: Readable },
 ): Promise<void> {
   const input = await readJsonPayload<Workout>(opts.file, opts.stdin, "workout");
-  const created = await client.request<Workout>("POST", "/v1/workouts", {
+  const data = await client.request<SingleResponse>("POST", "/v1/workouts", {
     body: { workout: stripServerFields(input) },
   });
+  const created = unwrapWorkout(data, "POST /v1/workouts");
   if (opts.json) writeJson(created);
   else process.stdout.write(formatWorkout(created) + "\n");
 }
@@ -113,11 +126,12 @@ export async function editWorkout(
     return;
   }
 
-  const updated = await client.request<Workout>(
+  const updated_data = await client.request<SingleResponse>(
     "PUT",
     `/v1/workouts/${encodeURIComponent(id)}`,
     { body: { workout: stripServerFields(next) } },
   );
+  const updated = unwrapWorkout(updated_data, `PUT /v1/workouts/${id}`);
   if (opts.json) writeJson(updated);
   else process.stdout.write(formatWorkout(updated) + "\n");
 }

@@ -83,6 +83,52 @@ describe("createWorkout", () => {
     expect(sent.workout).not.toHaveProperty("updated_at");
     expect(sent.workout).not.toHaveProperty("created_at");
   });
+
+  it("prints id and title from { workout } envelope on non-JSON success", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ workout: { ...WORKOUT, id: "w2" } }, 201),
+    );
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await createWorkout(client, { json: false, stdin });
+    const out = spy.mock.calls.join("");
+    expect(out).toContain("Morning Lift");
+    expect(out).toContain("w2");
+    expect(out).not.toContain("(untitled)");
+    expect(out).not.toContain("(?)");
+  });
+
+  it("still works when server returns a bare workout (no envelope)", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ ...WORKOUT, id: "w3" }, 201));
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await createWorkout(client, { json: false, stdin });
+    const out = spy.mock.calls.join("");
+    expect(out).toContain("Morning Lift");
+    expect(out).toContain("w3");
+  });
+
+  it("throws a clear error if server returns an empty body", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({}, 201));
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await expect(
+      createWorkout(client, { json: false, stdin }),
+    ).rejects.toThrow(/unexpected empty response from POST \/v1\/workouts(?!\/)/);
+  });
+
+  it("--json emits the unwrapped workout, NOT the envelope", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ workout: { ...WORKOUT, id: "w2" } }, 201),
+    );
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await createWorkout(client, { json: true, stdin });
+    const out = spy.mock.calls.map((c) => String(c[0])).join("");
+    const parsed = JSON.parse(out);
+    expect(parsed).toMatchObject({ id: "w2", title: "Morning Lift" });
+    expect(parsed).not.toHaveProperty("workout");
+  });
 });
 
 describe("editWorkout", () => {
@@ -103,6 +149,21 @@ describe("editWorkout", () => {
     expect(sent.workout).not.toHaveProperty("id");
     expect(sent.workout).not.toHaveProperty("updated_at");
     expect(sent.workout).not.toHaveProperty("created_at");
+  });
+
+  it("prints id and title from { workout } envelope on non-JSON success", async () => {
+    const updated = { ...WORKOUT, title: "Morning Lift v2" };
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(WORKOUT))
+      .mockResolvedValueOnce(jsonResponse({ workout: updated }));
+    const stdin = Readable.from([JSON.stringify(updated)]);
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await editWorkout(client, "w1", { file: "-", json: false, stdin });
+    const out = spy.mock.calls.join("");
+    expect(out).toContain("Morning Lift v2");
+    expect(out).toContain("w1");
+    expect(out).not.toContain("(untitled)");
+    expect(out).not.toContain("(?)");
   });
 });
 

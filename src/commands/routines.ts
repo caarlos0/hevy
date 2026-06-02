@@ -41,6 +41,14 @@ interface GetSingleResponse {
   routine?: Routine;
 }
 
+function unwrapRoutine(data: GetSingleResponse | Routine, ctx: string): Routine {
+  // Accept either the documented envelope ({ routine: {...} }) or a bare
+  // routine, so we stay forward-compatible with any API shape change.
+  if ("routine" in data && data.routine) return data.routine;
+  if ("id" in data || "title" in data) return data as Routine;
+  throw new Error(`unexpected empty response from ${ctx}`);
+}
+
 const SERVER_FIELDS = ["id", "updated_at", "created_at"] as const;
 
 function stripServerFields(routine: Routine): Omit<Routine, "id" | "updated_at" | "created_at"> {
@@ -81,9 +89,10 @@ export async function createRoutine(
   opts: { file?: string; json?: boolean; stdin?: Readable },
 ): Promise<void> {
   const input = await readJsonPayload<Routine>(opts.file, opts.stdin, "routine");
-  const created = await client.request<Routine>("POST", "/v1/routines", {
+  const data = await client.request<GetSingleResponse>("POST", "/v1/routines", {
     body: { routine: stripServerFields(input) },
   });
+  const created = unwrapRoutine(data, "POST /v1/routines");
   if (opts.json) writeJson(created);
   else process.stdout.write(formatRoutine(created) + "\n");
 }
@@ -100,11 +109,12 @@ export async function editRoutine(
     return;
   }
 
-  const updated = await client.request<Routine>(
+  const updated_data = await client.request<GetSingleResponse>(
     "PUT",
     `/v1/routines/${encodeURIComponent(id)}`,
     { body: { routine: stripServerFields(next) } },
   );
+  const updated = unwrapRoutine(updated_data, `PUT /v1/routines/${id}`);
   if (opts.json) writeJson(updated);
   else process.stdout.write(formatRoutine(updated) + "\n");
 }
@@ -114,6 +124,5 @@ async function fetchRoutine(client: Client, id: string): Promise<Routine> {
     "GET",
     `/v1/routines/${encodeURIComponent(id)}`,
   );
-  if (!data.routine) throw new Error(`routine ${id} not found in response`);
-  return data.routine;
+  return unwrapRoutine(data, `GET /v1/routines/${id}`);
 }
