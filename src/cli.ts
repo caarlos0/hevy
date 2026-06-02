@@ -31,6 +31,7 @@ interface PageOpts { page?: number; pageSize?: number }
 interface JsonOpt { json: boolean }
 type ListOpts = PageOpts & JsonOpt;
 interface FileOpts { file?: string }
+interface DryRunOpt { dryRun: boolean }
 
 function withJson(cmd: Command): Command {
   return cmd.option("--json", "emit raw JSON", false);
@@ -44,6 +45,14 @@ function withPaging(cmd: Command): Command {
 
 function withFile(cmd: Command): Command {
   return cmd.option("--file <path>", "read JSON from file (use - for stdin)");
+}
+
+function withDryRun(cmd: Command): Command {
+  return cmd.option(
+    "--dry-run",
+    "validate the JSON payload locally and exit without calling the API (structural check only — server-side rules like unknown exercise IDs are not verified)",
+    false,
+  );
 }
 
 export function buildProgram(client: Client): Command {
@@ -71,15 +80,15 @@ export function buildProgram(client: Client): Command {
       await getRoutine(client, id, opts);
     });
 
-  withJson(withFile(
+  withJson(withDryRun(withFile(
     routines.command("create").description("Create a routine from JSON (stdin or --file)"),
-  )).action(async (opts: FileOpts & JsonOpt) => {
+  ))).action(async (opts: FileOpts & JsonOpt & DryRunOpt) => {
     await createRoutine(client, opts);
   });
 
-  withJson(withFile(
+  withJson(withDryRun(withFile(
     routines.command("edit <id>").description("Edit a routine (opens $VISUAL/$EDITOR if no --file/stdin)"),
-  )).action(async (id: string, opts: FileOpts & JsonOpt) => {
+  ))).action(async (id: string, opts: FileOpts & JsonOpt & DryRunOpt) => {
     await editRoutine(client, id, opts);
   });
 
@@ -170,15 +179,15 @@ export function buildProgram(client: Client): Command {
       await getWorkout(client, id, opts);
     });
 
-  withJson(withFile(
+  withJson(withDryRun(withFile(
     workouts.command("create").description("Create a workout from JSON (stdin or --file)"),
-  )).action(async (opts: FileOpts & JsonOpt) => {
+  ))).action(async (opts: FileOpts & JsonOpt & DryRunOpt) => {
     await createWorkout(client, opts);
   });
 
-  withJson(withFile(
+  withJson(withDryRun(withFile(
     workouts.command("edit <id>").description("Edit a workout (opens $VISUAL/$EDITOR if no --file/stdin)"),
-  )).action(async (id: string, opts: FileOpts & JsonOpt) => {
+  ))).action(async (id: string, opts: FileOpts & JsonOpt & DryRunOpt) => {
     await editWorkout(client, id, opts);
   });
 
@@ -210,17 +219,17 @@ export function buildProgram(client: Client): Command {
       await getMeasurement(client, date, opts);
     });
 
-  withJson(withFile(
+  withJson(withDryRun(withFile(
     measurements.command("create").description("Create a body measurement from JSON (stdin or --file)"),
-  )).action(async (opts: FileOpts & JsonOpt) => {
+  ))).action(async (opts: FileOpts & JsonOpt & DryRunOpt) => {
     await createMeasurement(client, opts);
   });
 
-  withJson(withFile(
+  withJson(withDryRun(withFile(
     measurements
       .command("edit <date>")
       .description("Edit a body measurement (opens $VISUAL/$EDITOR if no --file/stdin)"),
-  )).action(async (date: string, opts: FileOpts & JsonOpt) => {
+  ))).action(async (date: string, opts: FileOpts & JsonOpt & DryRunOpt) => {
     await editMeasurement(client, date, opts);
   });
 
