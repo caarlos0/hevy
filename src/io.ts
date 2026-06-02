@@ -1,6 +1,32 @@
 import { readFile } from "node:fs/promises";
 import type { Readable } from "node:stream";
 import { editJson } from "./editor.js";
+import {
+  formatValidationFailure,
+  type ValidationResult,
+} from "./validate.js";
+
+export function emitDryRun(
+  result: ValidationResult,
+  kind: string,
+  json: boolean | undefined,
+): void {
+  if (json) {
+    // Machine-readable: both success and failure go to stdout so the output
+    // is jq-able regardless of exit code. Exit code carries pass/fail.
+    writeJson({
+      ok: result.ok,
+      kind,
+      dry_run: true,
+      ...(result.ok ? {} : { issues: result.issues }),
+    });
+  } else if (result.ok) {
+    process.stdout.write(`✓ ${kind} payload is valid (dry run; no API call made)\n`);
+  } else {
+    process.stderr.write(formatValidationFailure(kind, result.issues));
+  }
+  if (!result.ok) process.exitCode = 1;
+}
 
 export async function readStdin(stream: Readable = process.stdin): Promise<string> {
   const chunks: Buffer[] = [];

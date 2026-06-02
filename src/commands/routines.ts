@@ -1,7 +1,8 @@
 import type { Readable } from "node:stream";
 import type { Client } from "../api/client.js";
 import { formatRoutine, formatRoutineList } from "../format/routines.js";
-import { readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
+import { emitDryRun, readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
+import { validateRoutine } from "../validate.js";
 
 interface SetIn {
   type?: string;
@@ -78,9 +79,13 @@ export async function getRoutine(
 
 export async function createRoutine(
   client: Client,
-  opts: { file?: string; json?: boolean; stdin?: Readable },
+  opts: { file?: string; json?: boolean; stdin?: Readable; dryRun?: boolean },
 ): Promise<void> {
   const input = await readJsonPayload<Routine>(opts.file, opts.stdin, "routine");
+  if (opts.dryRun) {
+    emitDryRun(validateRoutine(input), "routine", opts.json);
+    return;
+  }
   const created = await client.request<Routine>("POST", "/v1/routines", {
     body: { routine: stripServerFields(input) },
   });
@@ -91,12 +96,23 @@ export async function createRoutine(
 export async function editRoutine(
   client: Client,
   id: string,
-  opts: { file?: string; json?: boolean; stdin?: Readable },
+  opts: { file?: string; json?: boolean; stdin?: Readable; dryRun?: boolean },
 ): Promise<void> {
+  if (opts.dryRun && opts.file !== undefined) {
+    const input = await readJsonPayload<Routine>(opts.file, opts.stdin, "routine");
+    emitDryRun(validateRoutine(input), "routine", opts.json);
+    return;
+  }
+
   const current = await fetchRoutine(client, id);
   const next = await resolveEditPayload<Routine>(current, opts, "routine.json", "routine");
   if (next === null) {
     process.stderr.write("no changes; aborting\n");
+    return;
+  }
+
+  if (opts.dryRun) {
+    emitDryRun(validateRoutine(next), "routine", opts.json);
     return;
   }
 

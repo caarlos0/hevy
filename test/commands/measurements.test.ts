@@ -89,4 +89,31 @@ describe("editMeasurement", () => {
     expect(body).not.toHaveProperty("date");
     expect(body).toMatchObject({ weight_kg: 81 });
   });
+
+  it("dry-run with --file: no API call and date preserved through validation", async () => {
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(M)]);
+    await editMeasurement(client, "2026-04-01", { file: "-", json: false, stdin, dryRun: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(spy.mock.calls.join("")).toContain("body measurement payload is valid");
+  });
+});
+
+describe("createMeasurement dry-run", () => {
+  it("valid: no API call", async () => {
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(M)]);
+    await createMeasurement(client, { json: false, stdin, dryRun: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(out.mock.calls.join("")).toContain("✓ body measurement payload is valid");
+  });
+
+  it("invalid: stderr + exitCode=1", async () => {
+    const err = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify({ date: "2026/04/01" })]);
+    await createMeasurement(client, { json: false, stdin, dryRun: true });
+    expect(err.mock.calls.join("")).toContain("✗ body measurement payload failed validation");
+    expect(process.exitCode).toBe(1);
+    process.exitCode = 0;
+  });
 });

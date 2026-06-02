@@ -104,6 +104,97 @@ describe("editWorkout", () => {
     expect(sent.workout).not.toHaveProperty("updated_at");
     expect(sent.workout).not.toHaveProperty("created_at");
   });
+
+  it("dry-run with --file skips GET and PUT entirely", async () => {
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    await editWorkout(client, "w1", { file: "-", json: false, stdin, dryRun: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(spy.mock.calls.join("")).toContain("workout payload is valid");
+  });
+
+  it("dry-run without --file performs GET but skips PUT", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(WORKOUT));
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify({ ...WORKOUT, title: "Renamed" })]);
+    Object.assign(stdin, { isTTY: false });
+    await editWorkout(client, "w1", { json: false, stdin, dryRun: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls.join("")).toContain("workout payload is valid");
+  });
+
+  it("dry-run propagates GET errors (no 'dry-run passed' on 404)", async () => {
+    fetchMock.mockResolvedValueOnce(new Response("not found", { status: 404 }));
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    Object.assign(stdin, { isTTY: false });
+    await expect(
+      editWorkout(client, "w1", { json: false, stdin, dryRun: true }),
+    ).rejects.toThrow();
+  });
+});
+
+describe("createWorkout dry-run", () => {
+  it("valid payload: no API call, success message on stdout", async () => {
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    await createWorkout(client, { json: false, stdin, dryRun: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(out.mock.calls.join("")).toContain("✓ workout payload is valid");
+    expect(process.exitCode).toBeFalsy();
+  });
+
+  it("invalid payload: no API call, failure on stderr, exitCode=1", async () => {
+    const err = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify({ title: "", exercises: [] })]);
+    await createWorkout(client, { json: false, stdin, dryRun: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(err.mock.calls.join("")).toContain("✗ workout payload failed validation");
+    expect(process.exitCode).toBe(1);
+    process.exitCode = 0;
+  });
+
+  it("--dry-run --json valid emits {ok:true,...} on stdout", async () => {
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    await createWorkout(client, { json: true, stdin, dryRun: true });
+    const payload = JSON.parse(out.mock.calls.map((c) => c[0]).join(""));
+    expect(payload).toMatchObject({ ok: true, kind: "workout", dry_run: true });
+  });
+
+  it("--dry-run --json invalid emits {ok:false,issues:[...]} on stdout", async () => {
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify({ title: "" })]);
+    await createWorkout(client, { json: true, stdin, dryRun: true });
+    const payload = JSON.parse(out.mock.calls.map((c) => c[0]).join(""));
+    expect(payload.ok).toBe(false);
+    expect(payload.issues.length).toBeGreaterThan(0);
+    expect(process.exitCode).toBe(1);
+    process.exitCode = 0;
+  });
+
+  it("stdin TTY with no --file → existing TTY error fires before dry-run", async () => {
+    const tty = Readable.from([""]);
+    Object.assign(tty, { isTTY: true });
+    await expect(
+      createWorkout(client, { json: false, stdin: tty, dryRun: true }),
+    ).rejects.toThrow(/provide JSON via --file/);
+  });
+
+  it("empty input error wins over dry-run", async () => {
+    const stdin = Readable.from(["   "]);
+    Object.assign(stdin, { isTTY: false });
+    await expect(
+      createWorkout(client, { json: false, stdin, dryRun: true }),
+    ).rejects.toThrow(/empty input/);
+  });
+
+  it("malformed JSON error wins over dry-run", async () => {
+    const stdin = Readable.from(["not json"]);
+    Object.assign(stdin, { isTTY: false });
+    await expect(
+      createWorkout(client, { json: false, stdin, dryRun: true }),
+    ).rejects.toThrow(/invalid JSON/);
+  });
 });
 
 describe("countWorkouts", () => {

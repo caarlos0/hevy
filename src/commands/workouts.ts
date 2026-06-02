@@ -6,7 +6,8 @@ import {
   formatWorkoutList,
   type WorkoutEvent,
 } from "../format/workouts.js";
-import { readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
+import { emitDryRun, readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
+import { validateWorkout } from "../validate.js";
 
 interface SetIn {
   type?: string;
@@ -91,9 +92,13 @@ export async function getWorkout(
 
 export async function createWorkout(
   client: Client,
-  opts: { file?: string; json?: boolean; stdin?: Readable },
+  opts: { file?: string; json?: boolean; stdin?: Readable; dryRun?: boolean },
 ): Promise<void> {
   const input = await readJsonPayload<Workout>(opts.file, opts.stdin, "workout");
+  if (opts.dryRun) {
+    emitDryRun(validateWorkout(input), "workout", opts.json);
+    return;
+  }
   const created = await client.request<Workout>("POST", "/v1/workouts", {
     body: { workout: stripServerFields(input) },
   });
@@ -104,12 +109,25 @@ export async function createWorkout(
 export async function editWorkout(
   client: Client,
   id: string,
-  opts: { file?: string; json?: boolean; stdin?: Readable },
+  opts: { file?: string; json?: boolean; stdin?: Readable; dryRun?: boolean },
 ): Promise<void> {
+  // `--dry-run --file` short-circuits before the GET: the user supplied a
+  // complete payload, no merge with current state is required.
+  if (opts.dryRun && opts.file !== undefined) {
+    const input = await readJsonPayload<Workout>(opts.file, opts.stdin, "workout");
+    emitDryRun(validateWorkout(input), "workout", opts.json);
+    return;
+  }
+
   const current = await fetchWorkout(client, id);
   const next = await resolveEditPayload<Workout>(current, opts, "workout.json", "workout");
   if (next === null) {
     process.stderr.write("no changes; aborting\n");
+    return;
+  }
+
+  if (opts.dryRun) {
+    emitDryRun(validateWorkout(next), "workout", opts.json);
     return;
   }
 
