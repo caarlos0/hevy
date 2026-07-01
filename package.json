@@ -43,10 +43,10 @@
     "exercise"
   ],
   "dependencies": {
-    "commander": "^14.0.3"
+    "commander": "^15.0.0"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
+    "@types/node": "^26.0.1",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^10.3.0",
