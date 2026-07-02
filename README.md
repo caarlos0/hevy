@@ -92,6 +92,23 @@ hevy exercises list --page-size 100 | grep -i squat
 hevy routines get r1 --json | jq '.title="renamed"' | hevy routines edit r1 --file -
 ```
 
+## Dry-run validation
+
+All `create` and `edit` commands accept `--dry-run` to validate a JSON payload
+structurally without making any API request. Validation is local: required
+fields, types, and (where applicable) `YYYY-MM-DD` date format are checked.
+Output respects `--json`. On failure, exit code is `1`.
+
+```sh
+hevy workouts create --file workout.json --dry-run
+hevy routines edit r1 --file routine.json --dry-run --json
+cat measurement.json | hevy measurements create --file - --dry-run
+```
+
+For `edit --dry-run --file …`, the remote `GET` is skipped entirely — the file
+is treated as the complete payload. Without `--file`, `edit --dry-run` fetches
+the current resource, applies your edits, then validates the merged result.
+
 ## Creating a workout
 
 `hevy workouts create --file workout.json` expects the workout object

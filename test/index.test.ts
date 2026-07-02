@@ -1,7 +1,8 @@
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { buildProgram } from "../src/cli.js";
 import pkg from "../package.json" with { type: "json" };
 
 const execFileAsync = promisify(execFile);
@@ -30,5 +31,24 @@ describe("index", () => {
 
     expect(stdout.trim()).toBe(pkg.version);
     expect(stderr).toBe("");
+  });
+
+  it("workouts create --dry-run --file <valid> makes no API request", async () => {
+    // Use a mock Client so the smoke test never touches the network.
+    const request = vi.fn();
+    const mockClient = { request } as unknown as Parameters<typeof buildProgram>[0];
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const program = buildProgram(mockClient);
+    await program.parseAsync([
+      "node",
+      "hevy",
+      "workouts",
+      "create",
+      "--dry-run",
+      "--file",
+      "examples/workout.json",
+    ]);
+    expect(request).not.toHaveBeenCalled();
+    expect(out.mock.calls.join("")).toContain("workout payload is valid");
   });
 });

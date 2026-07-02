@@ -1,7 +1,8 @@
 import type { Readable } from "node:stream";
 import type { Client } from "../api/client.js";
 import { formatMeasurement, formatMeasurementList } from "../format/measurements.js";
-import { readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
+import { emitDryRun, readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
+import { validateMeasurement } from "../validate.js";
 
 export interface BodyMeasurement {
   date: string;
@@ -62,9 +63,13 @@ export async function getMeasurement(
 
 export async function createMeasurement(
   client: Client,
-  opts: { file?: string; json?: boolean; stdin?: Readable },
+  opts: { file?: string; json?: boolean; stdin?: Readable; dryRun?: boolean },
 ): Promise<void> {
   const input = await readJsonPayload<BodyMeasurement>(opts.file, opts.stdin, "body measurement");
+  if (opts.dryRun) {
+    emitDryRun(validateMeasurement(input), "body measurement", opts.json);
+    return;
+  }
   const created = await client.requestMaybe<BodyMeasurement>(
     "POST",
     "/v1/body_measurements",
@@ -77,8 +82,14 @@ export async function createMeasurement(
 export async function editMeasurement(
   client: Client,
   date: string,
-  opts: { file?: string; json?: boolean; stdin?: Readable },
+  opts: { file?: string; json?: boolean; stdin?: Readable; dryRun?: boolean },
 ): Promise<void> {
+  if (opts.dryRun && opts.file !== undefined) {
+    const input = await readJsonPayload<BodyMeasurement>(opts.file, opts.stdin, "body measurement");
+    emitDryRun(validateMeasurement(input), "body measurement", opts.json);
+    return;
+  }
+
   const current = await client.request<BodyMeasurement>(
     "GET",
     `/v1/body_measurements/${encodeURIComponent(date)}`,
@@ -91,6 +102,11 @@ export async function editMeasurement(
   );
   if (next === null) {
     process.stderr.write("no changes; aborting\n");
+    return;
+  }
+
+  if (opts.dryRun) {
+    emitDryRun(validateMeasurement(next), "body measurement", opts.json);
     return;
   }
 

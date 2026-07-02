@@ -118,4 +118,31 @@ describe("editRoutine", () => {
       /invalid JSON from stdin/i,
     );
   });
+
+  it("dry-run with --file skips GET+PUT and accepts notes:null round-trip", async () => {
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify({ ...ROUTINE, notes: null })]);
+    await editRoutine(client, "r1", { file: "-", json: false, stdin, dryRun: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(spy.mock.calls.join("")).toContain("routine payload is valid");
+  });
+});
+
+describe("createRoutine dry-run", () => {
+  it("valid: no API call; success on stdout", async () => {
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(ROUTINE)]);
+    await createRoutine(client, { json: false, stdin, dryRun: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(out.mock.calls.join("")).toContain("✓ routine payload is valid");
+  });
+
+  it("invalid: stderr + exitCode=1", async () => {
+    const err = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify({ title: "x", exercises: [] })]);
+    await createRoutine(client, { json: false, stdin, dryRun: true });
+    expect(err.mock.calls.join("")).toContain("✗ routine payload failed validation");
+    expect(process.exitCode).toBe(1);
+    process.exitCode = 0;
+  });
 });
