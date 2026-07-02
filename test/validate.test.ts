@@ -277,6 +277,13 @@ describe("validateMeasurement", () => {
     expect(r.ok).toBe(false);
   });
 
+  it.each(["2024-13-45", "2026-00-10", "2026-01-32", "0000-00-00"])(
+    "rejects impossible date %s",
+    (date) => {
+      expect(validateMeasurement({ date, weight_kg: 80 }).ok).toBe(false);
+    },
+  );
+
   it("rejects negative weight_kg", () => {
     const r = validateMeasurement({ date: "2026-05-02", weight_kg: -3 });
     expect(r.ok).toBe(false);

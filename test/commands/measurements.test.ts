@@ -97,6 +97,33 @@ describe("editMeasurement", () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(spy.mock.calls.join("")).toContain("body measurement payload is valid");
   });
+
+  it("dry-run with --file accepts a payload without a date (URL date is authoritative)", async () => {
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify({ weight_kg: 81 })]);
+    await editMeasurement(client, "2026-04-01", { file: "-", json: false, stdin, dryRun: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(spy.mock.calls.join("")).toContain("body measurement payload is valid");
+  });
+
+  it("dry-run without --file performs GET but skips PUT", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(M));
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify({ ...M, weight_kg: 81 })]);
+    Object.assign(stdin, { isTTY: false });
+    await editMeasurement(client, "2026-04-01", { json: false, stdin, dryRun: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls.join("")).toContain("body measurement payload is valid");
+  });
+
+  it("dry-run propagates GET errors (no 'valid' on 404)", async () => {
+    fetchMock.mockResolvedValueOnce(new Response("not found", { status: 404 }));
+    const stdin = Readable.from([JSON.stringify(M)]);
+    Object.assign(stdin, { isTTY: false });
+    await expect(
+      editMeasurement(client, "2026-04-01", { json: false, stdin, dryRun: true }),
+    ).rejects.toThrow();
+  });
 });
 
 describe("createMeasurement dry-run", () => {

@@ -86,7 +86,7 @@ export async function editMeasurement(
 ): Promise<void> {
   if (opts.dryRun && opts.file !== undefined) {
     const input = await readJsonPayload<BodyMeasurement>(opts.file, opts.stdin, "body measurement");
-    emitDryRun(validateMeasurement(input), "body measurement", opts.json);
+    emitDryRun(validateMeasurement(input, { requireDate: false }), "body measurement", opts.json);
     return;
   }
 
@@ -106,7 +106,7 @@ export async function editMeasurement(
   }
 
   if (opts.dryRun) {
-    emitDryRun(validateMeasurement(next), "body measurement", opts.json);
+    emitDryRun(validateMeasurement(next, { requireDate: false }), "body measurement", opts.json);
     return;
   }
 

@@ -36,6 +36,15 @@ function looksLikeIsoDateTime(v: unknown): v is string {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
+// Same idea as looksLikeIsoDateTime, but for a date-only "YYYY-MM-DD". The
+// Date.parse guard rejects impossible values (month 13, day 45) that a
+// format-only regex would wave through.
+function looksLikeIsoDate(v: unknown): v is string {
+  if (!isStr(v)) return false;
+  if (!ISO_DATE.test(v)) return false;
+  return !Number.isNaN(Date.parse(v));
+}
+
 function push(issues: ValidationIssue[], path: string, message: string): void {
   issues.push({ path, message });
 }
@@ -103,12 +112,18 @@ const MEASUREMENT_NUMERIC_FIELDS = [
   "left_thigh", "right_thigh", "left_calf", "right_calf",
 ] as const;
 
-export function validateMeasurement(input: unknown): ValidationResult {
+export function validateMeasurement(
+  input: unknown,
+  opts: { requireDate?: boolean } = {},
+): ValidationResult {
+  const { requireDate = true } = opts;
   const issues: ValidationIssue[] = [];
   if (!isObject(input))
     return { ok: false, issues: [{ path: "$", message: "must be a JSON object" }] };
-  if (!isStr(input.date) || !ISO_DATE.test(input.date))
-    push(issues, "date", "is required and must be a YYYY-MM-DD string");
+  // On `edit`, the record is keyed by the URL date and the body `date` is
+  // stripped before the request, so it is neither required nor validated.
+  if (requireDate && !looksLikeIsoDate(input.date))
+    push(issues, "date", "is required and must be a valid YYYY-MM-DD date");
 
   let anyNumeric = false;
   for (const f of MEASUREMENT_NUMERIC_FIELDS) {
