@@ -32,8 +32,16 @@ async function main(): Promise<void> {
 
 function allowsMissingApiKey(argv: string[]): boolean {
   const args = argv.slice(2);
-  return args.some((arg) => ["--help", "-h", "--version", "-V"].includes(arg))
-    || args[0] === "help";
+  if (
+    args.some((arg) => ["--help", "-h", "--version", "-V"].includes(arg)) ||
+    args[0] === "help"
+  )
+    return true;
+  // `--dry-run` validates locally and needs no key — as long as no request is
+  // made. `create` and `edit --file` are fully offline; `edit` without --file
+  // still GETs the current resource, so it legitimately requires a key.
+  const hasFile = args.some((a) => a === "--file" || a.startsWith("--file="));
+  return args.includes("--dry-run") && (args.includes("create") || hasFile);
 }
 
 function unavailableClient(): Client {

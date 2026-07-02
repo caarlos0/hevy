@@ -51,4 +51,30 @@ describe("index", () => {
     expect(request).not.toHaveBeenCalled();
     expect(out.mock.calls.join("")).toContain("workout payload is valid");
   });
+
+  it("create --dry-run validates without HEVY_API_KEY", async () => {
+    const { stdout } = await runCli([
+      "workouts", "create", "--dry-run", "--file", "examples/workout.json",
+    ]);
+    expect(stdout).toContain("workout payload is valid");
+  });
+
+  it("edit --dry-run --file validates without HEVY_API_KEY (GET skipped)", async () => {
+    const { stdout } = await runCli([
+      "measurements", "edit", "2026-05-02", "--dry-run", "--file", "examples/measurement.json",
+    ]);
+    expect(stdout).toContain("body measurement payload is valid");
+  });
+
+  it("still requires HEVY_API_KEY for a non-dry-run write", async () => {
+    await expect(
+      runCli(["workouts", "create", "--file", "examples/workout.json"]),
+    ).rejects.toMatchObject({ stderr: expect.stringContaining("HEVY_API_KEY is not set") });
+  });
+
+  it("still requires HEVY_API_KEY for edit --dry-run without --file (needs GET)", async () => {
+    await expect(
+      runCli(["workouts", "edit", "w1", "--dry-run"]),
+    ).rejects.toMatchObject({ stderr: expect.stringContaining("HEVY_API_KEY is not set") });
+  });
 });
