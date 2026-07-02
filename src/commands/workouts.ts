@@ -63,6 +63,17 @@ function stripServerFields(workout: Workout): Omit<Workout, "id" | "updated_at" 
   return copy as Omit<Workout, "id" | "updated_at" | "created_at">;
 }
 
+// The Hevy API returns the created/updated workout wrapped in a `{ workout }`
+// envelope, even though the OpenAPI spec types the response as a bare Workout.
+// Unwrap it so the renderer (and --json) get the workout itself instead of
+// printing "(untitled)  (?)".
+function unwrapWorkout(res: unknown): Workout {
+  if (res && typeof res === "object" && (res as { workout?: unknown }).workout) {
+    return (res as { workout: Workout }).workout;
+  }
+  return res as Workout;
+}
+
 export async function listWorkouts(
   client: Client,
   opts: { page?: number; pageSize?: number; json?: boolean },
@@ -99,9 +110,11 @@ export async function createWorkout(
     emitDryRun(validateWorkout(input), "workout", opts.json);
     return;
   }
-  const created = await client.request<Workout>("POST", "/v1/workouts", {
-    body: { workout: stripServerFields(input) },
-  });
+  const created = unwrapWorkout(
+    await client.request<unknown>("POST", "/v1/workouts", {
+      body: { workout: stripServerFields(input) },
+    }),
+  );
   if (opts.json) writeJson(created);
   else process.stdout.write(formatWorkout(created) + "\n");
 }
@@ -131,10 +144,12 @@ export async function editWorkout(
     return;
   }
 
-  const updated = await client.request<Workout>(
-    "PUT",
-    `/v1/workouts/${encodeURIComponent(id)}`,
-    { body: { workout: stripServerFields(next) } },
+  const updated = unwrapWorkout(
+    await client.request<unknown>(
+      "PUT",
+      `/v1/workouts/${encodeURIComponent(id)}`,
+      { body: { workout: stripServerFields(next) } },
+    ),
   );
   if (opts.json) writeJson(updated);
   else process.stdout.write(formatWorkout(updated) + "\n");
