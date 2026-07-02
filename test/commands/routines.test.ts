@@ -126,6 +126,25 @@ describe("editRoutine", () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(spy.mock.calls.join("")).toContain("routine payload is valid");
   });
+
+  it("dry-run without --file performs GET but skips PUT", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ routine: ROUTINE }));
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify({ ...ROUTINE, title: "Renamed" })]);
+    Object.assign(stdin, { isTTY: false });
+    await editRoutine(client, "r1", { json: false, stdin, dryRun: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls.join("")).toContain("routine payload is valid");
+  });
+
+  it("dry-run propagates GET errors (no 'valid' on 404)", async () => {
+    fetchMock.mockResolvedValueOnce(new Response("not found", { status: 404 }));
+    const stdin = Readable.from([JSON.stringify(ROUTINE)]);
+    Object.assign(stdin, { isTTY: false });
+    await expect(
+      editRoutine(client, "r1", { json: false, stdin, dryRun: true }),
+    ).rejects.toThrow();
+  });
 });
 
 describe("createRoutine dry-run", () => {
