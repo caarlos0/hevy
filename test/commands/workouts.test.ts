@@ -83,6 +83,35 @@ describe("createWorkout", () => {
     expect(sent.workout).not.toHaveProperty("updated_at");
     expect(sent.workout).not.toHaveProperty("created_at");
   });
+
+  it("renders the created workout from the API's { workout } envelope", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ workout: { ...WORKOUT, id: "w2" } }, 201));
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    await createWorkout(client, { json: false, stdin });
+    const printed = out.mock.calls.join("");
+    expect(printed).toContain("Morning Lift");
+    expect(printed).toContain("w2");
+    expect(printed).not.toContain("(untitled)");
+  });
+
+  it("--json unwraps the { workout } envelope to a bare workout", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ workout: { ...WORKOUT, id: "w2" } }, 201));
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    await createWorkout(client, { json: true, stdin });
+    const payload = JSON.parse(out.mock.calls.map((c) => c[0]).join(""));
+    expect(payload).toMatchObject({ id: "w2", title: "Morning Lift" });
+    expect(payload).not.toHaveProperty("workout");
+  });
+
+  it("still renders a bare (unenveloped) workout response", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ ...WORKOUT, id: "w3" }, 201));
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(WORKOUT)]);
+    await createWorkout(client, { json: false, stdin });
+    expect(out.mock.calls.join("")).toContain("Morning Lift");
+  });
 });
 
 describe("editWorkout", () => {
@@ -103,6 +132,19 @@ describe("editWorkout", () => {
     expect(sent.workout).not.toHaveProperty("id");
     expect(sent.workout).not.toHaveProperty("updated_at");
     expect(sent.workout).not.toHaveProperty("created_at");
+  });
+
+  it("renders the updated workout from the API's { workout } envelope", async () => {
+    const updated = { ...WORKOUT, title: "Morning Lift v2" };
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(WORKOUT))
+      .mockResolvedValueOnce(jsonResponse({ workout: updated }));
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(updated)]);
+    await editWorkout(client, "w1", { file: "-", json: false, stdin });
+    const printed = out.mock.calls.join("");
+    expect(printed).toContain("Morning Lift v2");
+    expect(printed).not.toContain("(untitled)");
   });
 
   it("dry-run with --file skips GET and PUT entirely", async () => {
