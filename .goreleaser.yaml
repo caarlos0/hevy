@@ -9,6 +9,10 @@
 version: 2
 pro: true
 
+metadata:
+  homepage: "https://github.com/caarlos0/hevy"
+  description: "CLI for managing Hevy routines via the public Hevy API"
+
 after:
   hooks:
     - "{{ if .IsRelease }}npm publish{{ end }}"
@@ -40,12 +44,31 @@ archives:
       - goos: windows
         formats: [zip]
 
+notarize:
+  macos:
+    - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
+      sign:
+        certificate: "{{.Env.MACOS_SIGN_P12}}"
+        password: "{{.Env.MACOS_SIGN_PASSWORD}}"
+      notarize:
+        issuer_id: "{{.Env.MACOS_NOTARY_ISSUER_ID}}"
+        key_id: "{{.Env.MACOS_NOTARY_KEY_ID}}"
+        key: "{{.Env.MACOS_NOTARY_KEY}}"
+
 changelog:
   sort: asc
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+
+homebrew_casks:
+  - repository:
+      owner: caarlos0
+      name: homebrew-tap
+      token: "{{ .Env.GH_PAT }}"
+    url:
+      verified: "github.com/caarlos0/{{ .ProjectName }}"
 
 release:
   footer: >-
