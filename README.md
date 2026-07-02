@@ -95,7 +95,7 @@ hevy routines get r1 --json | jq '.title="renamed"' | hevy routines edit r1 --fi
 ## Dry-run validation
 
 All `create` and `edit` commands accept `--dry-run` to validate a JSON payload
-structurally without making any API request. Validation is local: required
+structurally without creating or updating anything. Validation is local: required
 fields, types, and (where applicable) `YYYY-MM-DD` date format are checked.
 Output respects `--json`. On failure, exit code is `1`.
 
