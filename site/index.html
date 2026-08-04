@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Hevy CLI brings workout data into terminals, scripts, and agent workflows."
+    />
+    <meta name="theme-color" content="#f3f1ed" />
+    <meta property="og:title" content="Hevy CLI | Your training data, command ready" />
+    <meta
+      property="og:description"
+      content="Inspect, edit, validate, and automate your Hevy data from the command line."
+    />
+    <meta property="og:type" content="website" />
+    <title>Hevy CLI | Your training data, command ready</title>
+    <link rel="stylesheet" href="assets/fonts.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <!--
+  THESIS: Training data becomes a command surface; refuse the generic app-card landing page.
+  OWN-WORLD: Chalk-white training ledger, ink-black rules, Hevy red marks, condensed athletic display, mono data.
+  STORY: See terminal and workout data move together, trust the CLI's machine behavior, install or inspect source.
+  FIRST VIEWPORT: Oversized left headline and actions face a ruled terminal-to-workout composition on the right.
+  FORM: Strength-programming ledger, third grounded direction, seed aabbe6a2.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+  -->
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="Hevy CLI home">
+        <span class="mark" aria-hidden="true"><i></i><b>H</b><i></i></span>
+        <span>HEVY<span class="cli-tag">/CLI</span></span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#workflows">Workflows</a>
+        <a href="#commands">Commands</a>
+        <a href="#install">Install</a>
+      </nav>
+      <a class="header-github" href="https://github.com/caarlos0/hevy"
+        >GitHub <span aria-hidden="true">↗</span></a
+      >
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <h1>Your training data.<br /><em>Command ready.</em></h1>
+          <p class="hero-deck">
+            Inspect workouts, rewrite routines, validate payloads, and wire Hevy into the tools you
+            already use.
+          </p>
+          <div class="hero-actions">
+            <div class="install-command">
+              <code>npm i -g @caarlos0/hevy</code>
+              <button
+                class="copy-button"
+                type="button"
+                data-copy="npm install -g @caarlos0/hevy"
+                aria-label="Copy npm install command"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+                  <path
+                    d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-10A1.5 1.5 0 0 0 3 5.5v10A1.5 1.5 0 0 0 4.5 17H8"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <a class="button button-dark" href="https://github.com/caarlos0/hevy"
+              >View on GitHub <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <p class="hero-footnote">
+            Open source and community built. Help and version need no key. Account commands use
+            <code>HEVY_API_KEY</code>.
+          </p>
+        </div>
+
+        <div class="hero-visual" aria-label="Illustrative terminal session and workout data">
+          <div class="plate plate-a" aria-hidden="true"><span>20.4</span><small>KG</small></div>
+          <div class="plate plate-b" aria-hidden="true"><span>10.2</span><small>KG</small></div>
+          <div class="terminal-window">
+            <div class="terminal-bar"><span></span><span></span><span></span><b>~/training</b></div>
+            <div class="terminal-body">
+              <p><i>$</i> hevy workouts list</p>
+              <div class="terminal-rule"></div>
+              <div class="terminal-table head">
+                <span>DATE</span><span>WORKOUT</span><span>SETS</span>
+              </div>
+              <div class="terminal-table">
+                <span>JUL 30</span><strong>Lower strength</strong><span>18</span>
+              </div>
+              <div class="terminal-table">
+                <span>JUL 28</span><strong>Upper volume</strong><span>22</span>
+              </div>
+              <div class="terminal-table">
+                <span>JUL 25</span><strong>Pull + carries</strong><span>16</span>
+              </div>
+              <p class="prompt"><i>$</i> hevy exercises history D04AC939</p>
+            </div>
+          </div>
+          <div class="workout-sheet">
+            <div class="sheet-head">
+              <div><span>SESSION</span><strong>LOWER STRENGTH</strong></div>
+              <b>18 SETS</b>
+            </div>
+            <div class="exercise-row">
+              <span class="exercise-index">A</span>
+              <div><strong>BARBELL SQUAT</strong><small>4 sets / 100 kg / RPE 8</small></div>
+              <span class="set-mark">04</span>
+            </div>
+            <div class="exercise-row">
+              <span class="exercise-index">B</span>
+              <div><strong>ROMANIAN DEADLIFT</strong><small>4 sets / 82.5 kg / 8 reps</small></div>
+              <span class="set-mark">04</span>
+            </div>
+            <div class="exercise-row">
+              <span class="exercise-index">C</span>
+              <div><strong>LEG EXTENSION</strong><small>3 sets / 65 kg / 12 reps</small></div>
+              <span class="set-mark">03</span>
+            </div>
+            <div class="volume-line">
+              <span>VOLUME</span><b>8,420 KG</b
+              ><svg viewBox="0 0 180 34" aria-hidden="true">
+                <path d="M1 29 L25 22 L46 25 L66 13 L88 18 L111 8 L134 13 L157 4 L179 7"></path>
+              </svg>
+            </div>
+            <small class="illustrative">Illustrative training data</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="ticker" aria-label="CLI features">
+        <div>
+          WORKOUTS <span>●</span> ROUTINES <span>●</span> EXERCISES <span>●</span> HISTORY
+          <span>●</span> MEASUREMENTS <span>●</span> JSON <span>●</span> DRY RUN <span>●</span>
+        </div>
+      </section>
+
+      <section class="workflow-intro" id="workflows">
+        <div>
+          <h2>Built for the way<br />you <em>train &amp; automate.</em></h2>
+        </div>
+        <p>
+          Human-readable when you are exploring. Raw JSON when a script or agent needs the same
+          data. One CLI, no translation layer.
+        </p>
+      </section>
+
+      <section class="flow flow-inspect">
+        <div class="flow-copy">
+          <span class="flow-number">01 / INSPECT</span>
+          <h3>Pull your training history into view.</h3>
+          <p>
+            Query workouts, routines, exercise history, folders, measurements, or your own identity
+            without leaving the shell.
+          </p>
+          <pre><code><i>$</i> hevy exercises list --page-size 100 \
+  | grep -i squat
+
+Barbell Squat  D04AC939  weight_reps
+Pause Squat     E7D3A110  weight_reps</code></pre>
+        </div>
+        <div class="data-surface" aria-label="Illustrative squat history">
+          <div class="data-title">
+            <span>EXERCISE HISTORY</span><strong>BARBELL SQUAT</strong><b>D04AC939</b>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-y">
+              <span>130</span><span>110</span><span>90</span><span>70 KG</span>
+            </div>
+            <svg
+              class="history-chart"
+              viewBox="0 0 620 240"
+              role="img"
+              aria-label="Illustrative barbell squat weight history rising over time"
+            >
+              <g class="grid"><path d="M0 20H620M0 85H620M0 150H620M0 215H620"></path></g>
+              <path
+                class="area"
+                d="M0 190L70 176L140 180L210 144L280 152L350 115L420 122L490 74L560 82L620 42V240H0Z"
+              ></path>
+              <path
+                class="line"
+                d="M0 190L70 176L140 180L210 144L280 152L350 115L420 122L490 74L560 82L620 42"
+              ></path>
+              <g class="dots">
+                <circle cx="0" cy="190" r="5"></circle>
+                <circle cx="210" cy="144" r="5"></circle>
+                <circle cx="350" cy="115" r="5"></circle>
+                <circle cx="490" cy="74" r="5"></circle>
+                <circle cx="620" cy="42" r="6"></circle>
+              </g>
+            </svg>
+            <div class="chart-x">
+              <span>JAN</span><span>MAR</span><span>MAY</span><span>JUL</span>
+            </div>
+          </div>
+          <div class="history-list">
+            <span>2026-07-30</span><strong>120 kg × 5</strong><span>RPE 8</span>
+          </div>
+          <small class="illustrative">Illustrative training data</small>
+        </div>
+      </section>
+
+      <section class="flow flow-compose">
+        <div class="pipeline-stage">
+          <div class="pipeline-file">
+            <span>routine.json</span>
+            <pre>
+{
+  <b>"title"</b>: "Strength Block A",
+  <b>"exercises"</b>: [ ... ]
+}</pre>
+          </div>
+          <span class="pipe-arrow" aria-hidden="true">→</span>
+          <div class="pipeline-terminal">
+            <span>PIPE / EDIT</span>
+            <pre><i>$</i> hevy routines get r1 --json \
+  | jq '.title = "Strength Block B"' \
+  | hevy routines edit r1 --file - --json</pre>
+          </div>
+          <span class="pipe-arrow" aria-hidden="true">→</span>
+          <div class="pipeline-result">
+            <span>API RESPONSE</span><strong>STRENGTH<br />BLOCK B</strong
+            ><small>updated_at 2026-08-03</small>
+          </div>
+        </div>
+        <div class="flow-copy">
+          <span class="flow-number">02 / COMPOSE</span>
+          <h3>Use the tools already in your hands.</h3>
+          <p>
+            Read JSON from files or stdin. Edit in <code>$VISUAL</code>, <code>$EDITOR</code>, or
+            round-trip a live routine through <code>jq</code>.
+          </p>
+        </div>
+      </section>
+
+      <section class="safety-section">
+        <div class="safety-copy">
+          <span class="flow-number">03 / VALIDATE</span>
+          <h2>Test the payload.<br /><em>Not your luck.</em></h2>
+          <p>
+            <code>--dry-run</code> checks required fields, types, and dates before a create or edit
+            request mutates your account.
+          </p>
+        </div>
+        <div class="validation-console">
+          <div class="validation-line">
+            <span>$</span><code>hevy workouts create --file workout.json --dry-run --json</code>
+          </div>
+          <div class="validation-result">
+            <span class="check" aria-hidden="true">✓</span>
+            <div>
+              <strong>PAYLOAD VALID</strong><code>{ "ok": true, "resource": "workout" }</code>
+            </div>
+            <b>NO WRITE REQUEST</b>
+          </div>
+          <p>File-backed dry runs validate locally and can run without an API key.</p>
+        </div>
+      </section>
+
+      <section class="machine-section">
+        <div class="machine-copy">
+          <h2>Predictable enough<br />for the <em>machines.</em></h2>
+          <p>
+            Raw API responses go to stdout. Errors go to stderr and return a non-zero exit. Your
+            scripts and agents get a contract, not decorated terminal output.
+          </p>
+          <div class="contract-list">
+            <div><span>STDOUT</span><strong>RAW JSON</strong><b>→ pipe it</b></div>
+            <div><span>STDERR</span><strong>CLEAR ERRORS</strong><b>→ catch it</b></div>
+            <div><span>EXIT</span><strong>NON-ZERO</strong><b>→ branch on it</b></div>
+          </div>
+        </div>
+        <div class="json-console">
+          <div class="terminal-bar"><span></span><span></span><span></span><b>agent/run.sh</b></div>
+          <pre><code><i>$</i> hevy workouts list --json | jq '.workouts[0]'
+
+{
+  <b>"id"</b>: "f8d2...",
+  <b>"title"</b>: "Lower Strength",
+  <b>"start_time"</b>: "2026-07-30T17:30:00Z",
+  <b>"exercises"</b>: [
+    { <b>"title"</b>: "Barbell Squat", <b>"sets"</b>: [...] }
+  ]
+}
+
+<span class="success">✓ stdout: valid JSON / exit 0</span></code></pre>
+          <small class="illustrative">Illustrative API response shape</small>
+        </div>
+      </section>
+
+      <section class="command-section" id="commands">
+        <div class="command-heading">
+          <h2>The whole training log.<br /><em>At your prompt.</em></h2>
+          <p>
+            Read account data, create resources, and edit them without inventing another workflow.
+          </p>
+        </div>
+        <div class="command-table">
+          <div class="command-row">
+            <span>WHOAMI</span><code>hevy whoami</code>
+            <p>Authenticated user identity</p>
+          </div>
+          <div class="command-row">
+            <span>ROUTINES</span><code>list / get / create / edit</code>
+            <p>Programs from JSON or your editor</p>
+          </div>
+          <div class="command-row">
+            <span>WORKOUTS</span><code>list / get / count / events / create / edit</code>
+            <p>Sessions, history sync, and mutation</p>
+          </div>
+          <div class="command-row">
+            <span>EXERCISES</span><code>list / get / history / create</code>
+            <p>Templates, performance, and custom movements</p>
+          </div>
+          <div class="command-row">
+            <span>MEASUREMENTS</span><code>list / get / create / edit</code>
+            <p>Body measurements by date</p>
+          </div>
+          <div class="command-row">
+            <span>FOLDERS</span><code>list / get / create</code>
+            <p>Routine organization</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="install-section" id="install">
+        <div class="install-copy">
+          <h2>Rack it.<br /><em>Run it.</em></h2>
+          <p>
+            Install globally, try it once with npx, or grab a prebuilt release for macOS, Linux, or
+            Windows.
+          </p>
+        </div>
+        <div class="install-options">
+          <div class="install-option active">
+            <span>NPM</span><code>npm install -g @caarlos0/hevy</code
+            ><button
+              type="button"
+              class="copy-button"
+              data-copy="npm install -g @caarlos0/hevy"
+              aria-label="Copy npm install command"
+            >
+              COPY
+            </button>
+          </div>
+          <div class="install-option">
+            <span>NPX</span><code>npx @caarlos0/hevy --help</code
+            ><button
+              type="button"
+              class="copy-button"
+              data-copy="npx @caarlos0/hevy --help"
+              aria-label="Copy npx command"
+            >
+              COPY
+            </button>
+          </div>
+          <a class="release-option" href="https://github.com/caarlos0/hevy/releases"
+            ><span>PREBUILT RELEASES</span><strong>macOS / Linux / Windows</strong
+            ><b aria-hidden="true">↗</b></a
+          >
+          <div class="key-note">
+            <strong>CONNECT YOUR ACCOUNT</strong>
+            <p>
+              Get an API key from Hevy settings, then export it as <code>HEVY_API_KEY</code>. Never
+              paste a key into this site.
+            </p>
+            <a href="https://hevy.com/settings?api"
+              >Open API settings <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta">
+        <div class="barbell" aria-hidden="true">
+          <span></span><i></i><b></b><i></i><span></span>
+        </div>
+        <h2>Put your training data<br /><em>under your control.</em></h2>
+        <div class="final-actions">
+          <a class="button button-light" href="https://github.com/caarlos0/hevy"
+            >Explore the source <span aria-hidden="true">↗</span></a
+          ><a href="https://api.hevyapp.com/docs/">Read the Hevy API docs</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <a class="wordmark footer-mark" href="#top"
+        ><span class="mark" aria-hidden="true"><i></i><b>H</b><i></i></span
+        ><span>HEVY<span class="cli-tag">/CLI</span></span></a
+      >
+      <p>
+        Open-source community project by <a href="https://github.com/caarlos0">Carlos Becker</a>.
+        Not affiliated with or endorsed by Hevy Studios.
+      </p>
+      <div>
+        <a href="https://github.com/caarlos0/hevy">GitHub</a
+        ><a href="https://api.hevyapp.com/docs/">API docs</a
+        ><a href="https://github.com/caarlos0/hevy/blob/main/LICENSE">MIT license</a>
+      </div>
+    </footer>
+  </body>
+</html>
