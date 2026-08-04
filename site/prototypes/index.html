@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#070707">
+  <title>Hevy CLI — Robot Hero Prototypes</title>
+  <link rel="stylesheet" href="../assets/fonts.css">
+  <link rel="stylesheet" href="prototype.css">
+  <script src="prototype.js" defer></script>
+</head>
+<body class="v-chrome">
+<!--
+THESIS: Your workouts, your terminal, embodied by a robot doing real work instead of a generic app mockup.
+OWN-WORLD: Three intentionally separate dark visual systems: chrome power rack, integer-pixel terminal game, and industrial motion schematic.
+STORY: Meet Hevy CLI, watch automation lift, copy a real command, then inspect the workflow.
+FIRST VIEWPORT: Headline and install controls occupy the left half; an animated squatting robot owns the right half.
+FORM: User-pinned three-prototype exploration, seed 3348c04e.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+<a class="skip" href="#main">Skip to prototypes</a>
+<div class="prototype-bar" aria-label="Prototype selector">
+  <div class="prototype-label"><span>HEVY/CLI</span><b>HERO LAB</b></div>
+  <div class="variant-tabs" role="tablist" aria-label="Robot direction">
+    <button type="button" role="tab" aria-selected="true" data-variant="chrome"><i>01</i> Chrome</button>
+    <button type="button" role="tab" aria-selected="false" data-variant="pixel"><i>02</i> Pixel</button>
+    <button type="button" role="tab" aria-selected="false" data-variant="schematic"><i>03</i> Schematic</button>
+  </div>
+</div>
+
+<header class="site-header">
+  <a href="#" class="brand" aria-label="Hevy CLI home">
+    <svg viewBox="0 0 54 28" aria-hidden="true"><path d="M3 4v20M11 8v12M43 8v12M51 4v20M11 14h32"/><text x="22" y="19">H</text></svg>
+    <span>HEVY<em>/CLI</em></span>
+  </a>
+  <nav aria-label="Primary"><a href="#workflows">Workflows</a><a href="#commands">Commands</a><a href="https://github.com/caarlos0/hevy">GitHub ↗</a></nav>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="hero-copy">
+      <div class="status-line"><span></span><b>HEVY CONNECTED</b><code>v1.0.0</code></div>
+      <h1>Your workouts.<br><strong>Your terminal.</strong></h1>
+      <p>Log lifts, inspect routines, and automate your training data without leaving the command line.</p>
+      <div class="actions">
+        <div class="install"><span>$</span><code>npm i -g @caarlos0/hevy</code><button type="button" data-copy="npm i -g @caarlos0/hevy" aria-label="Copy install command"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11"/><path d="M16 8V5H5v11h3"/></svg></button></div>
+        <a class="source" href="https://github.com/caarlos0/hevy">View source <span>↗</span></a>
+      </div>
+      <div class="proof"><span><i></i> macOS</span><span><i></i> Linux</span><span><i></i> Windows</span><span>MIT licensed</span></div>
+    </div>
+
+    <div class="robot-stage" aria-label="Animated robot performing barbell squats">
+      <div class="rack" aria-hidden="true"><i></i><i></i><b></b><b></b></div>
+      <div class="telemetry t-left"><span>REP</span><strong id="rep-count">04</strong><small>/ 05</small></div>
+      <div class="telemetry t-right"><span>LOAD</span><strong>140</strong><small>KG</small></div>
+      <div class="robot-wrap" aria-hidden="true">
+        <svg class="robot" viewBox="0 0 520 520">
+          <defs>
+            <linearGradient id="metal" x1="0" x2="1"><stop stop-color="#30353a"/><stop offset=".22" stop-color="#dfe6e8"/><stop offset=".5" stop-color="#5c656b"/><stop offset=".72" stop-color="#f7ffff"/><stop offset="1" stop-color="#292e32"/></linearGradient>
+            <linearGradient id="darkmetal"><stop stop-color="#111315"/><stop offset=".5" stop-color="#687077"/><stop offset="1" stop-color="#151719"/></linearGradient>
+          </defs>
+          <g class="barbell" data-squat-part="barbell">
+            <path class="bar" d="M52 152H468"/>
+            <g class="plates left"><rect x="28" y="111" width="22" height="82"/><rect x="50" y="120" width="16" height="64"/><path d="M66 152h22"/></g>
+            <g class="plates right"><rect x="470" y="111" width="22" height="82"/><rect x="454" y="120" width="16" height="64"/><path d="M432 152h22"/></g>
+          </g>
+          <g class="bot">
+            <g class="upper-body" data-squat-part="upper-body">
+            <g class="head"><path d="M219 70h82l18 22-10 72-29 19h-40l-29-19-10-72z"/><path class="face" d="M220 105h80l-5 42-22 15h-28l-22-15z"/><path class="eye" d="M235 125h50"/><circle cx="260" cy="82" r="6"/></g>
+            <g class="torso"><path d="M194 181l33-23h66l33 23 14 104-42 43h-76l-42-43z"/><path class="core" d="M226 196h68l14 79-26 27h-44l-26-27z"/><path class="badge" d="M246 218h28v28h-28z"/></g>
+            <g class="arm arm-l"><circle cx="191" cy="190" r="21"/><path d="M183 195l-37-23-36-18"/><circle cx="146" cy="172" r="14"/><path d="M111 154l-28-3"/></g>
+            <g class="arm arm-r"><circle cx="329" cy="190" r="21"/><path d="M337 195l37-23 36-18"/><circle cx="374" cy="172" r="14"/><path d="M409 154l28-3"/></g>
+            </g>
+            <g class="leg leg-l" data-squat-leg="left"><circle class="hip" cx="231" cy="326" r="18"/><path class="leg-link" d="M231 326 L201 404 L219 474"/><circle class="knee" cx="201" cy="404" r="15"/><path class="foot" d="M219 474h-58"/></g>
+            <g class="leg leg-r" data-squat-leg="right"><circle class="hip" cx="289" cy="326" r="18"/><path class="leg-link" d="M289 326 L319 404 L301 474"/><circle class="knee" cx="319" cy="404" r="15"/><path class="foot" d="M301 474h58"/></g>
+          </g>
+        </svg>
+      </div>
+      <div class="floor-line"></div>
+      <div class="terminal-float"><div><span></span><span></span><span></span><b>~/training</b></div><pre><i>$</i> hevy workouts create squat.json
+<span>✓ workout created</span>
+  5 sets · 140 kg · RPE 8</pre></div>
+      <div class="schematic-label label-knee">KNEE // 91.4°</div>
+      <div class="schematic-label label-load">AXIAL LOAD // 1.37kN</div>
+      <div class="pixel-caption">HEVYBOT USED <b>SQUAT</b><br>IT'S SUPER EFFECTIVE!</div>
+    </div>
+  </section>
+
+  <section class="command-strip" id="commands"><div><span>WORKOUTS</span><i>/</i><span>ROUTINES</span><i>/</i><span>EXERCISES</span><i>/</i><span>MEASUREMENTS</span><i>/</i><span>JSON</span><i>/</i><span>DRY RUN</span></div></section>
+
+  <section class="workflows" id="workflows">
+    <div class="workflow-copy"><h2>Train hard.<br><strong>Pipe clean.</strong></h2><p>Human-readable at a glance. Machine-readable on demand. Hevy CLI makes your workout history composable.</p></div>
+    <div class="workflow-terminal"><div><span>WORKOUT HISTORY</span><b>stdout</b></div><pre><i>$</i> hevy exercises history D04AC939 --json \
+  | jq '.[] | {date, weight_kg, reps}'
+
+<span>{ "date": "2026-07-30", "weight_kg": 140, "reps": 5 }</span>
+<span>{ "date": "2026-07-23", "weight_kg": 137.5, "reps": 5 }</span>
+
+<i>$</i> <em>_</em></pre></div>
+  </section>
+</main>
+<script>document.documentElement.dataset.ready='true'</script>
+</body>
+</html>
