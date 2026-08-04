@@ -4,8 +4,8 @@
   --ink: #11100f;
   --muted: #5f5b55;
   --rule: #c9c3ba;
-  --red: #ed1c24;
-  --red-dark: #bc1118;
+  --accent: #1c4eff;
+  --accent-dark: #1237b8;
   --terminal: #171717;
   --terminal-2: #222;
   --white: #fffefa;
@@ -21,6 +21,7 @@
 }
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 body {
   margin: 0;
@@ -46,7 +47,7 @@ pre {
   font-family: var(--mono);
 }
 ::selection {
-  background: var(--red);
+  background: var(--accent);
   color: white;
 }
 .skip-link {
@@ -62,7 +63,7 @@ pre {
   top: 1rem;
 }
 :focus-visible {
-  outline: 3px solid var(--red);
+  outline: 3px solid var(--accent);
   outline-offset: 4px;
 }
 
@@ -94,7 +95,7 @@ pre {
 .mark b {
   width: 30px;
   height: 26px;
-  background: var(--red);
+  background: var(--accent);
   display: grid;
   place-items: center;
   font: 900 1rem/1 var(--display);
@@ -102,11 +103,11 @@ pre {
 .mark i {
   width: 6px;
   height: 18px;
-  background: var(--red);
+  background: var(--accent);
   display: block;
 }
 .cli-tag {
-  color: var(--red);
+  color: var(--accent);
 }
 .site-header nav {
   display: flex;
@@ -124,7 +125,7 @@ pre {
   padding: 2rem 0;
 }
 .site-header nav a:hover {
-  color: var(--red);
+  color: var(--accent);
 }
 .header-github {
   margin-left: 3rem;
@@ -159,7 +160,7 @@ h1 {
 }
 h1 em,
 h2 em {
-  color: var(--red);
+  color: var(--accent);
   font-style: normal;
 }
 .hero-deck {
@@ -198,7 +199,7 @@ h2 em {
   font: 700 0.7rem/1 var(--mono);
 }
 .copy-button:hover {
-  background: var(--red);
+  background: var(--accent);
   color: white;
 }
 .copy-button svg {
@@ -224,8 +225,8 @@ h2 em {
   border: 1px solid var(--ink);
 }
 .button-dark:hover {
-  background: var(--red);
-  border-color: var(--red);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 .hero-footnote {
   margin: 1rem 0 0;
@@ -282,7 +283,7 @@ h2 em {
 }
 .terminal-body i,
 pre i {
-  color: var(--red);
+  color: var(--accent);
   font-style: normal;
 }
 .terminal-rule {
@@ -314,7 +315,7 @@ pre i {
   right: 0;
   bottom: 8px;
   background: var(--white);
-  border-top: 6px solid var(--red);
+  border-top: 6px solid var(--accent);
   padding: 1.1rem 1.25rem 0.9rem;
   box-shadow: 0 24px 45px rgba(18, 16, 14, 0.17);
   transform: rotate(-1deg);
@@ -339,7 +340,7 @@ pre i {
   font: 800 1.35rem/1 var(--display);
 }
 .sheet-head > b {
-  background: var(--red);
+  background: var(--accent);
   color: white;
   padding: 0.45rem;
   font: 700 0.65rem/1 var(--mono);
@@ -373,7 +374,7 @@ pre i {
 }
 .set-mark {
   font: 800 1.3rem/1 var(--display);
-  color: var(--red);
+  color: var(--accent);
 }
 .volume-line {
   display: grid;
@@ -392,7 +393,7 @@ pre i {
 }
 .volume-line path {
   fill: none;
-  stroke: var(--red);
+  stroke: var(--accent);
   stroke-width: 2;
 }
 .illustrative {
@@ -433,11 +434,11 @@ pre i {
   width: 190px;
   right: -60px;
   top: -25px;
-  border-color: var(--red);
-  color: var(--red);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .plate-a::after {
-  border-color: var(--red);
+  border-color: var(--accent);
 }
 .plate-b {
   width: 125px;
@@ -448,7 +449,7 @@ pre i {
 
 .ticker {
   overflow: hidden;
-  background: var(--red);
+  background: var(--accent);
   color: white;
   border-block: 1px solid var(--ink);
 }
@@ -518,7 +519,7 @@ footer {
 .flow-number {
   display: block;
   margin-bottom: 1rem;
-  color: var(--red);
+  color: var(--accent);
   font: 700 0.68rem/1 var(--mono);
   letter-spacing: 0.1em;
 }
@@ -561,7 +562,7 @@ footer {
   font: 800 1.7rem/1 var(--display);
 }
 .data-title b {
-  color: var(--red);
+  color: var(--accent);
   font: 600 0.65rem/1 var(--mono);
   align-self: end;
 }
@@ -589,16 +590,16 @@ footer {
   stroke-width: 1;
 }
 .area {
-  fill: rgba(237, 28, 36, 0.08);
+  fill: rgba(28, 78, 255, 0.09);
 }
 .line {
   fill: none;
-  stroke: var(--red);
+  stroke: var(--accent);
   stroke-width: 4;
 }
 .dots circle {
   fill: var(--white);
-  stroke: var(--red);
+  stroke: var(--accent);
   stroke-width: 4;
 }
 .chart-x {
@@ -622,7 +623,7 @@ footer {
 }
 .history-list span:last-child {
   text-align: right;
-  color: var(--red);
+  color: var(--accent);
 }
 .flow-compose {
   grid-template-columns: 1.2fr 0.8fr;
@@ -652,12 +653,12 @@ footer {
   overflow: auto;
 }
 .pipeline-file b {
-  color: var(--red);
+  color: var(--accent);
 }
 .pipeline-terminal {
   background: var(--ink) !important;
   color: white;
-  border-color: var(--red) !important;
+  border-color: var(--accent) !important;
   transform: scale(1.08);
   z-index: 2;
 }
@@ -675,20 +676,20 @@ footer {
 }
 .pipeline-result strong {
   font: 800 1.4rem/1 var(--display);
-  color: var(--red);
+  color: var(--accent);
 }
 .pipeline-result small {
   font: 500 0.5rem/1 var(--mono);
   color: var(--muted);
 }
 .pipe-arrow {
-  color: var(--red);
+  color: var(--accent);
   font-size: 1.4rem;
   padding: 0 0.4rem;
 }
 
 .safety-section {
-  background: var(--red);
+  background: var(--accent);
   color: white;
   max-width: none;
   padding-block: 6.5rem;
@@ -718,7 +719,7 @@ footer {
   align-self: center;
   background: var(--ink);
   color: white;
-  box-shadow: 0 22px 45px rgba(50, 0, 0, 0.3);
+  box-shadow: 0 22px 45px rgba(12, 24, 80, 0.28);
 }
 .validation-line {
   display: flex;
@@ -729,7 +730,7 @@ footer {
   overflow: auto;
 }
 .validation-line span {
-  color: var(--red);
+  color: var(--accent);
 }
 .validation-result {
   display: grid;
@@ -803,7 +804,7 @@ footer {
   align-items: center;
 }
 .contract-list span {
-  color: var(--red);
+  color: var(--accent);
   font: 700 0.65rem/1 var(--mono);
 }
 .contract-list strong {
@@ -862,7 +863,7 @@ footer {
 }
 .command-row > span {
   font: 800 1rem/1 var(--display);
-  color: var(--red);
+  color: var(--accent);
 }
 .command-row code {
   font-size: 0.75rem;
@@ -912,7 +913,7 @@ footer {
   margin-bottom: 0.65rem;
 }
 .install-option.active {
-  border-color: var(--red);
+  border-color: var(--accent);
 }
 .install-option > span {
   display: grid;
@@ -941,7 +942,7 @@ footer {
 }
 .release-option span {
   font: 700 0.65rem/1 var(--mono);
-  color: var(--red);
+  color: var(--accent);
 }
 .release-option strong {
   font: 800 1rem/1 var(--display);
@@ -950,7 +951,7 @@ footer {
   font-size: 1.5rem;
 }
 .release-option:hover strong {
-  color: var(--red);
+  color: var(--accent);
 }
 .key-note {
   border-top: 1px solid #555;
@@ -958,7 +959,7 @@ footer {
 }
 .key-note > strong {
   font: 700 0.65rem/1 var(--mono);
-  color: var(--red);
+  color: var(--accent);
 }
 .key-note p {
   color: #aaa;
@@ -977,7 +978,7 @@ footer {
 .final-cta {
   min-height: 570px;
   padding: 7rem 3.5rem;
-  background: var(--red);
+  background: var(--accent);
   color: white;
   text-align: center;
   display: flex;

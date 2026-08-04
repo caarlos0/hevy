@@ -38,7 +38,7 @@ Users install with npm, run with npx, or download prebuilt macOS, Linux, and Win
 
 ## Brand commitments
 
-Use Hevy's strong red accent, clean workout tracking vocabulary, progress data, and athletic energy as inspiration while giving the CLI its own terminal-first identity. Avoid generic SaaS card grids, purple gradients, fake testimonials, fake metrics, and vague productivity claims. Public copy should be direct, specific, and human.
+Use Hevy's clean workout tracking vocabulary, progress data, and athletic energy as inspiration while giving the CLI a distinct cobalt-and-ink, terminal-first identity. Avoid generic SaaS card grids, purple gradients, fake testimonials, fake metrics, and vague productivity claims. Public copy should be direct, specific, and human.
 
 ## Evidence on hand
 

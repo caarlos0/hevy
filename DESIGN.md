@@ -2,7 +2,7 @@
 
 ## Direction
 
-A strength-programming ledger turned into a command surface. The site combines ruled training sheets, iron-black terminal windows, Hevy-red marks, progressive data, and condensed athletic typography. It should feel built for lifting and shell work, never like a generic SaaS dashboard.
+A strength-programming ledger turned into a command surface. The site combines ruled training sheets, iron-black terminal windows, cobalt command marks, progressive data, and condensed athletic typography. It should feel built for lifting and shell work, never like a generic SaaS dashboard.
 
 ## Principles
 
@@ -19,7 +19,7 @@ A strength-programming ledger turned into a command surface. The site combines r
 - Ink: `#11100f`
 - Muted ink: `#5f5b55`
 - Rule: `#c9c3ba`
-- Training red: `#ed1c24`
+- Command cobalt: `#1c4eff`
 - Terminal: `#171717`
 - Validation green: `#a8dc54`
 - Display: Barlow Condensed, 800–900
@@ -32,8 +32,8 @@ Fonts are self-hosted in `site/assets` so the deployed artifact has no font CDN 
 
 - Maximum content width: 1440px.
 - Desktop hero: decisive headline and actions opposite an overlapping terminal/workout-sheet composition.
-- Sections use strong horizontal rules and alternating paper, red, and ink fields rather than floating cards.
-- Data surfaces use compact mono labels, ruled rows, restrained shadows, and red as a functional signal.
+- Sections use strong horizontal rules and alternating paper, cobalt, and ink fields rather than floating cards.
+- Data surfaces use compact mono labels, ruled rows, restrained shadows, and cobalt as a functional signal.
 - Primary controls are rectangular and high contrast. No ornamental pill controls.
 - Mobile collapses every two-column narrative into one column and contains all decorative overflow within its section.
 
