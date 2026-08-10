@@ -7,7 +7,7 @@
       name="description"
       content="Hevy CLI brings workout data into terminals, scripts, and agent workflows."
     />
-    <meta name="theme-color" content="#f3f1ed" />
+    <meta name="theme-color" content="#070809" />
     <meta property="og:title" content="Hevy CLI | Your training data, command ready" />
     <meta
       property="og:description"
@@ -31,7 +31,7 @@
   -->
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
-      <a class="wordmark" href="#top" aria-label="Hevy CLI home">
+      <a class="wordmark" href="#top">
         <span class="mark" aria-hidden="true"><i></i><b>H</b><i></i></span>
         <span>HEVY<span class="cli-tag">/CLI</span></span>
       </a>
@@ -48,14 +48,14 @@
     <main id="main">
       <section class="hero" id="top">
         <div class="hero-copy">
-          <h1>Your training data.<br /><em>Command ready.</em></h1>
+          <h1>Your workouts.<br /><em>Your terminal.</em></h1>
           <p class="hero-deck">
-            Inspect workouts, rewrite routines, validate payloads, and wire Hevy into the tools you
-            already use.
+            Inspect workouts, build routines, validate payloads, and automate Hevy data without
+            leaving the command line.
           </p>
           <div class="hero-actions">
             <div class="install-command">
-              <code>npm i -g @caarlos0/hevy</code>
+              <span class="shell-prompt">$</span><code>npm install -g @caarlos0/hevy</code>
               <button
                 class="copy-button"
                 type="button"
@@ -75,69 +75,133 @@
             >
           </div>
           <p class="hero-footnote">
-            Open source and community built. Help and version need no key. Account commands use
-            <code>HEVY_API_KEY</code>.
+            Open-source community project. <code>hevy --help</code> needs no key; account commands
+            use <code>HEVY_API_KEY</code>.
           </p>
         </div>
 
-        <div class="hero-visual" aria-label="Illustrative terminal session and workout data">
-          <div class="plate plate-a" aria-hidden="true"><span>20.4</span><small>KG</small></div>
-          <div class="plate plate-b" aria-hidden="true"><span>10.2</span><small>KG</small></div>
-          <div class="terminal-window">
-            <div class="terminal-bar"><span></span><span></span><span></span><b>~/training</b></div>
-            <div class="terminal-body">
-              <p><i>$</i> hevy workouts list</p>
-              <div class="terminal-rule"></div>
-              <div class="terminal-table head">
-                <span>DATE</span><span>WORKOUT</span><span>SETS</span>
-              </div>
-              <div class="terminal-table">
-                <span>JUL 30</span><strong>Lower strength</strong><span>18</span>
-              </div>
-              <div class="terminal-table">
-                <span>JUL 28</span><strong>Upper volume</strong><span>22</span>
-              </div>
-              <div class="terminal-table">
-                <span>JUL 25</span><strong>Pull + carries</strong><span>16</span>
-              </div>
-              <p class="prompt"><i>$</i> hevy exercises history D04AC939</p>
-            </div>
+        <div
+          class="hero-visual robot-stage"
+          role="img"
+          aria-label="Animated chrome robot performing barbell squats"
+        >
+          <div class="rack" aria-hidden="true"><i></i><i></i><b></b><b></b></div>
+          <div class="telemetry t-left">
+            <span>REP</span><strong id="rep-count">04</strong><small>/ 05</small>
           </div>
-          <div class="workout-sheet">
-            <div class="sheet-head">
-              <div><span>SESSION</span><strong>LOWER STRENGTH</strong></div>
-              <b>18 SETS</b>
-            </div>
-            <div class="exercise-row">
-              <span class="exercise-index">A</span>
-              <div><strong>BARBELL SQUAT</strong><small>4 sets / 100 kg / RPE 8</small></div>
-              <span class="set-mark">04</span>
-            </div>
-            <div class="exercise-row">
-              <span class="exercise-index">B</span>
-              <div><strong>ROMANIAN DEADLIFT</strong><small>4 sets / 82.5 kg / 8 reps</small></div>
-              <span class="set-mark">04</span>
-            </div>
-            <div class="exercise-row">
-              <span class="exercise-index">C</span>
-              <div><strong>LEG EXTENSION</strong><small>3 sets / 65 kg / 12 reps</small></div>
-              <span class="set-mark">03</span>
-            </div>
-            <div class="volume-line">
-              <span>VOLUME</span><b>8,420 KG</b
-              ><svg viewBox="0 0 180 34" aria-hidden="true">
-                <path d="M1 29 L25 22 L46 25 L66 13 L88 18 L111 8 L134 13 L157 4 L179 7"></path>
-              </svg>
-            </div>
-            <small class="illustrative">Illustrative training data</small>
+          <div class="telemetry t-right">
+            <span>LOAD</span><strong>140</strong><small>KG</small>
+          </div>
+          <div class="robot-wrap" aria-hidden="true">
+            <svg class="robot" viewBox="0 0 520 520">
+              <defs>
+                <linearGradient id="metal" x1="0" x2="1">
+                  <stop stop-color="#30353a" />
+                  <stop offset=".22" stop-color="#dfe6e8" />
+                  <stop offset=".5" stop-color="#5c656b" />
+                  <stop offset=".72" stop-color="#f7ffff" />
+                  <stop offset="1" stop-color="#292e32" />
+                </linearGradient>
+                <linearGradient id="darkmetal">
+                  <stop stop-color="#111315" />
+                  <stop offset=".5" stop-color="#687077" />
+                  <stop offset="1" stop-color="#151719" />
+                </linearGradient>
+              </defs>
+              <g class="bot">
+                <g class="lifted-load" data-squat-part="lifted-load">
+                  <g class="barbell" data-squat-part="barbell">
+                    <path class="bar" d="M52 152H468" />
+                    <g class="plates left">
+                      <rect x="28" y="111" width="22" height="82" />
+                      <rect x="50" y="120" width="16" height="64" />
+                      <path d="M66 152h22" />
+                    </g>
+                    <g class="plates right">
+                      <rect x="470" y="111" width="22" height="82" />
+                      <rect x="454" y="120" width="16" height="64" />
+                      <path d="M432 152h22" />
+                    </g>
+                  </g>
+                  <g class="upper-body" data-squat-part="upper-body">
+                    <g class="head">
+                      <path d="M219 70h82l18 22-10 72-29 19h-40l-29-19-10-72z" />
+                      <path class="face" d="M220 105h80l-5 42-22 15h-28l-22-15z" />
+                      <path class="eye" d="M235 125h50" />
+                      <circle cx="260" cy="82" r="6" />
+                    </g>
+                    <g class="torso">
+                      <path d="M194 181l33-23h66l33 23 14 104-42 43h-76l-42-43z" />
+                      <path class="core" d="M226 196h68l14 79-26 27h-44l-26-27z" />
+                      <path class="badge" d="M246 218h28v28h-28z" />
+                    </g>
+                    <g class="arm arm-l">
+                      <circle cx="191" cy="190" r="21" />
+                      <path d="M183 195l-37-23-36-18" />
+                      <circle cx="146" cy="172" r="14" />
+                      <path d="M111 154l-28-3" />
+                      <g class="robot-hand">
+                        <rect x="71" y="138" width="25" height="28" rx="10" />
+                        <path d="M76 146h15M76 153h15M78 160h11" />
+                      </g>
+                    </g>
+                    <g class="arm arm-r">
+                      <circle cx="329" cy="190" r="21" />
+                      <path d="M337 195l37-23 36-18" />
+                      <circle cx="374" cy="172" r="14" />
+                      <path d="M409 154l28-3" />
+                      <g class="robot-hand">
+                        <rect x="424" y="138" width="25" height="28" rx="10" />
+                        <path d="M429 146h15M429 153h15M431 160h11" />
+                      </g>
+                    </g>
+                  </g>
+                </g>
+                <g class="leg leg-l" data-squat-leg="left">
+                  <circle class="hip" cx="231" cy="326" r="18" />
+                  <path class="leg-link" d="M231 326 L201 404 L219 474" />
+                  <circle class="knee" cx="201" cy="404" r="15" />
+                  <path class="foot" d="M219 474h-58" />
+                </g>
+                <g class="leg leg-r" data-squat-leg="right">
+                  <circle class="hip" cx="289" cy="326" r="18" />
+                  <path class="leg-link" d="M289 326 L319 404 L301 474" />
+                  <circle class="knee" cx="319" cy="404" r="15" />
+                  <path class="foot" d="M301 474h58" />
+                </g>
+              </g>
+            </svg>
+          </div>
+          <div class="floor-line" aria-hidden="true"></div>
+          <div class="terminal-float">
+            <div><span></span><span></span><span></span><b>~/training</b></div>
+            <pre><i>$</i> jq '.title = "Leg Day Baby"' squat.json \
+  | hevy workouts create --file -
+<span>illustrative · barbell squat · quads</span></pre>
           </div>
         </div>
       </section>
 
       <section class="ticker" aria-label="CLI features">
-        <div>
-          WORKOUTS <span>●</span> ROUTINES <span>●</span> EXERCISES <span>●</span> HISTORY
-          <span>●</span> MEASUREMENTS <span>●</span> JSON <span>●</span> DRY RUN <span>●</span>
+        <div class="ticker-track" aria-hidden="true">
+          <div class="ticker-group">
+            <span class="ticker-item">WORKOUTS</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">ROUTINES</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">EXERCISES</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">HISTORY</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">MEASUREMENTS</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">JSON</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">DRY RUN</span><span class="ticker-dot">●</span>
+          </div>
+          <div class="ticker-group">
+            <span class="ticker-item">WORKOUTS</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">ROUTINES</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">EXERCISES</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">HISTORY</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">MEASUREMENTS</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">JSON</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">DRY RUN</span><span class="ticker-dot">●</span>
+          </div>
         </div>
       </section>
 
@@ -146,134 +210,22 @@
           <h2>Built for the way<br />you <em>train &amp; automate.</em></h2>
         </div>
         <p>
-          Human-readable when you are exploring. Raw JSON when a script or agent needs the same
-          data. One CLI, no translation layer.
+          Human-readable when you are exploring. Machine-readable JSON when a script or agent needs
+          the same data. One CLI, no translation layer.
         </p>
-      </section>
-
-      <section class="flow flow-inspect">
-        <div class="flow-copy">
-          <span class="flow-number">01 / INSPECT</span>
-          <h3>Pull your training history into view.</h3>
-          <p>
-            Query workouts, routines, exercise history, folders, measurements, or your own identity
-            without leaving the shell.
-          </p>
-          <pre><code><i>$</i> hevy exercises list --page-size 100 \
-  | grep -i squat
-
-Barbell Squat  D04AC939  weight_reps
-Pause Squat     E7D3A110  weight_reps</code></pre>
-        </div>
-        <div class="data-surface" aria-label="Illustrative squat history">
-          <div class="data-title">
-            <span>EXERCISE HISTORY</span><strong>BARBELL SQUAT</strong><b>D04AC939</b>
-          </div>
-          <div class="chart-wrap">
-            <div class="chart-y">
-              <span>130</span><span>110</span><span>90</span><span>70 KG</span>
-            </div>
-            <svg
-              class="history-chart"
-              viewBox="0 0 620 240"
-              role="img"
-              aria-label="Illustrative barbell squat weight history rising over time"
-            >
-              <g class="grid"><path d="M0 20H620M0 85H620M0 150H620M0 215H620"></path></g>
-              <path
-                class="area"
-                d="M0 190L70 176L140 180L210 144L280 152L350 115L420 122L490 74L560 82L620 42V240H0Z"
-              ></path>
-              <path
-                class="line"
-                d="M0 190L70 176L140 180L210 144L280 152L350 115L420 122L490 74L560 82L620 42"
-              ></path>
-              <g class="dots">
-                <circle cx="0" cy="190" r="5"></circle>
-                <circle cx="210" cy="144" r="5"></circle>
-                <circle cx="350" cy="115" r="5"></circle>
-                <circle cx="490" cy="74" r="5"></circle>
-                <circle cx="620" cy="42" r="6"></circle>
-              </g>
-            </svg>
-            <div class="chart-x">
-              <span>JAN</span><span>MAR</span><span>MAY</span><span>JUL</span>
-            </div>
-          </div>
-          <div class="history-list">
-            <span>2026-07-30</span><strong>120 kg × 5</strong><span>RPE 8</span>
-          </div>
-          <small class="illustrative">Illustrative training data</small>
-        </div>
-      </section>
-
-      <section class="flow flow-compose">
-        <div class="pipeline-stage">
-          <div class="pipeline-file">
-            <span>routine.json</span>
-            <pre>
-{
-  <b>"title"</b>: "Strength Block A",
-  <b>"exercises"</b>: [ ... ]
-}</pre>
-          </div>
-          <span class="pipe-arrow" aria-hidden="true">→</span>
-          <div class="pipeline-terminal">
-            <span>PIPE / EDIT</span>
-            <pre><i>$</i> hevy routines get r1 --json \
-  | jq '.title = "Strength Block B"' \
-  | hevy routines edit r1 --file - --json</pre>
-          </div>
-          <span class="pipe-arrow" aria-hidden="true">→</span>
-          <div class="pipeline-result">
-            <span>API RESPONSE</span><strong>STRENGTH<br />BLOCK B</strong
-            ><small>updated_at 2026-08-03</small>
-          </div>
-        </div>
-        <div class="flow-copy">
-          <span class="flow-number">02 / COMPOSE</span>
-          <h3>Use the tools already in your hands.</h3>
-          <p>
-            Read JSON from files or stdin. Edit in <code>$VISUAL</code>, <code>$EDITOR</code>, or
-            round-trip a live routine through <code>jq</code>.
-          </p>
-        </div>
-      </section>
-
-      <section class="safety-section">
-        <div class="safety-copy">
-          <span class="flow-number">03 / VALIDATE</span>
-          <h2>Test the payload.<br /><em>Not your luck.</em></h2>
-          <p>
-            <code>--dry-run</code> checks required fields, types, and dates before a create or edit
-            request mutates your account.
-          </p>
-        </div>
-        <div class="validation-console">
-          <div class="validation-line">
-            <span>$</span><code>hevy workouts create --file workout.json --dry-run --json</code>
-          </div>
-          <div class="validation-result">
-            <span class="check" aria-hidden="true">✓</span>
-            <div>
-              <strong>PAYLOAD VALID</strong><code>{ "ok": true, "resource": "workout" }</code>
-            </div>
-            <b>NO WRITE REQUEST</b>
-          </div>
-          <p>File-backed dry runs validate locally and can run without an API key.</p>
-        </div>
       </section>
 
       <section class="machine-section">
         <div class="machine-copy">
           <h2>Predictable enough<br />for the <em>machines.</em></h2>
           <p>
-            Raw API responses go to stdout. Errors go to stderr and return a non-zero exit. Your
-            scripts and agents get a contract, not decorated terminal output.
+            Machine-readable JSON goes to stdout. Human-readable errors go to stderr; JSON dry-run
+            validation stays on stdout. Failures return a non-zero exit, giving scripts and agents a
+            contract instead of decorated terminal output.
           </p>
           <div class="contract-list">
-            <div><span>STDOUT</span><strong>RAW JSON</strong><b>→ pipe it</b></div>
-            <div><span>STDERR</span><strong>CLEAR ERRORS</strong><b>→ catch it</b></div>
+            <div><span>STDOUT</span><strong>MACHINE JSON</strong><b>→ pipe it</b></div>
+            <div><span>STDERR</span><strong>HUMAN ERRORS</strong><b>→ catch it</b></div>
             <div><span>EXIT</span><strong>NON-ZERO</strong><b>→ branch on it</b></div>
           </div>
         </div>
@@ -291,7 +243,7 @@ Pause Squat     E7D3A110  weight_reps</code></pre>
 }
 
 <span class="success">✓ stdout: valid JSON / exit 0</span></code></pre>
-          <small class="illustrative">Illustrative API response shape</small>
+          <small class="illustrative">Illustrative JSON output shape</small>
         </div>
       </section>
 
@@ -379,7 +331,7 @@ Pause Squat     E7D3A110  weight_reps</code></pre>
       </section>
 
       <section class="final-cta">
-        <div class="barbell" aria-hidden="true">
+        <div class="cta-barbell" aria-hidden="true">
           <span></span><i></i><b></b><i></i><span></span>
         </div>
         <h2>Put your training data<br /><em>under your control.</em></h2>
@@ -396,10 +348,7 @@ Pause Squat     E7D3A110  weight_reps</code></pre>
         ><span class="mark" aria-hidden="true"><i></i><b>H</b><i></i></span
         ><span>HEVY<span class="cli-tag">/CLI</span></span></a
       >
-      <p>
-        Open-source community project by <a href="https://github.com/caarlos0">Carlos Becker</a>.
-        Not affiliated with or endorsed by Hevy Studios.
-      </p>
+      <p>Open-source community project. Not affiliated with or endorsed by Hevy Studios.</p>
       <div>
         <a href="https://github.com/caarlos0/hevy">GitHub</a
         ><a href="https://api.hevyapp.com/docs/">API docs</a
