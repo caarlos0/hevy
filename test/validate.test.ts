@@ -231,14 +231,26 @@ describe("validateRoutine", () => {
     expect(r.ok).toBe(false);
   });
 
-  it("requires exercise.title in routines", () => {
+  // The API rejects `title` inside routine exercises ("Unrecognized key(s) in
+  // object: 'title'"), so requiring it here made every valid payload fail.
+  it("does not require exercise.title in routines", () => {
     const r = validateRoutine({
       title: "x",
       folder_id: null,
       exercises: [{ exercise_template_id: "x", sets: [{}] }],
     });
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.issues.some((i) => i.path === "exercises[0].title")).toBe(true);
+    expect(r.ok).toBe(true);
+  });
+
+  it("accepts a routine round-tripped from GET (title/index present)", () => {
+    const r = validateRoutine({
+      title: "x",
+      folder_id: null,
+      exercises: [
+        { index: 0, title: "Squat", exercise_template_id: "x", sets: [{ index: 0 }] },
+      ],
+    });
+    expect(r.ok).toBe(true);
   });
 
   it("rejects exercise.rest_seconds as string", () => {

@@ -1,5 +1,6 @@
 import type { Readable } from "node:stream";
 import type { Client } from "../api/client.js";
+import { toRequest, unwrap, type RequestKeys } from "../api/payload.js";
 import {
   formatEventList,
   formatWorkout,
@@ -55,24 +56,23 @@ interface EventsResponse {
   events: WorkoutEvent[];
 }
 
-const SERVER_FIELDS = ["id", "updated_at", "created_at"] as const;
-
-function stripServerFields(workout: Workout): Omit<Workout, "id" | "updated_at" | "created_at"> {
-  const copy: Record<string, unknown> = { ...workout };
-  for (const f of SERVER_FIELDS) delete copy[f];
-  return copy as Omit<Workout, "id" | "updated_at" | "created_at">;
-}
-
-// The Hevy API returns the created/updated workout wrapped in a `{ workout }`
-// envelope, even though the OpenAPI spec types the response as a bare Workout.
-// Unwrap it so the renderer (and --json) get the workout itself instead of
-// printing "(untitled)  (?)".
-function unwrapWorkout(res: unknown): Workout {
-  if (res && typeof res === "object" && (res as { workout?: unknown }).workout) {
-    return (res as { workout: Workout }).workout;
-  }
-  return res as Workout;
-}
+// Keys accepted by POST /v1/workouts and PUT /v1/workouts/{id}. Everything
+// else a GET returns (`id`, `updated_at`, `created_at`, `routine_id`,
+// exercise `index` and `title`, set `index`) is rejected with a 400, so a
+// `get | create` round-trip only works if we send exactly these.
+const REQUEST_KEYS: RequestKeys = {
+  top: ["title", "description", "start_time", "end_time", "is_private"],
+  exercise: ["exercise_template_id", "superset_id", "notes"],
+  set: [
+    "type",
+    "weight_kg",
+    "reps",
+    "distance_meters",
+    "duration_seconds",
+    "custom_metric",
+    "rpe",
+  ],
+};
 
 export async function listWorkouts(
   client: Client,
@@ -110,10 +110,11 @@ export async function createWorkout(
     emitDryRun(validateWorkout(input), "workout", opts.json);
     return;
   }
-  const created = unwrapWorkout(
+  const created = unwrap<Workout>(
     await client.request<unknown>("POST", "/v1/workouts", {
-      body: { workout: stripServerFields(input) },
+      body: { workout: toRequest(input, REQUEST_KEYS) },
     }),
+    "workout",
   );
   if (opts.json) writeJson(created);
   else process.stdout.write(formatWorkout(created) + "\n");
@@ -144,12 +145,13 @@ export async function editWorkout(
     return;
   }
 
-  const updated = unwrapWorkout(
+  const updated = unwrap<Workout>(
     await client.request<unknown>(
       "PUT",
       `/v1/workouts/${encodeURIComponent(id)}`,
-      { body: { workout: stripServerFields(next) } },
+      { body: { workout: toRequest(next, REQUEST_KEYS) } },
     ),
+    "workout",
   );
   if (opts.json) writeJson(updated);
   else process.stdout.write(formatWorkout(updated) + "\n");

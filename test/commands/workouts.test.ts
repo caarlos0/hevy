@@ -26,6 +26,29 @@ const WORKOUT = {
   ],
 };
 
+// Shaped like a real GET /v1/workouts/{id} payload: carries the read-only
+// keys (`routine_id`, `index`, exercise `title`) the API rejects on write.
+const FROM_GET = {
+  id: "w1",
+  title: "Morning Lift",
+  description: "",
+  routine_id: "rt1",
+  start_time: "2026-04-01T07:00:00Z",
+  end_time: "2026-04-01T08:00:00Z",
+  updated_at: "2026-04-01T08:01:00Z",
+  created_at: "2026-04-01T08:01:00Z",
+  exercises: [
+    {
+      index: 0,
+      title: "Bench",
+      notes: "",
+      exercise_template_id: "ex1",
+      superset_id: null,
+      sets: [{ index: 0, type: "normal", weight_kg: 100, reps: 5, rpe: null }],
+    },
+  ],
+};
+
 const fetchMock = vi.fn();
 const client = createClient({
   apiKey: "k",
@@ -82,6 +105,39 @@ describe("createWorkout", () => {
     expect(sent.workout).not.toHaveProperty("id");
     expect(sent.workout).not.toHaveProperty("updated_at");
     expect(sent.workout).not.toHaveProperty("created_at");
+  });
+
+  // The API answers 400 "Unrecognized key(s) in object: 'index', 'title'.
+  // Unrecognized key(s) in object: 'routine_id'", so a `workouts get --json |
+  // workouts create` round-trip must send only the documented request keys.
+  it("sends only request keys when fed a GET response", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ workout: { ...WORKOUT, id: "w2" } }, 201));
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(FROM_GET)]);
+    await createWorkout(client, { json: true, stdin });
+    const sent = JSON.parse((fetchMock.mock.calls[0]![1] as RequestInit).body as string) as {
+      workout: Record<string, unknown>;
+    };
+    expect(Object.keys(sent.workout).sort()).toEqual([
+      "description",
+      "end_time",
+      "exercises",
+      "start_time",
+      "title",
+    ]);
+    const ex = (sent.workout.exercises as Record<string, unknown>[])[0]!;
+    expect(Object.keys(ex).sort()).toEqual([
+      "exercise_template_id",
+      "notes",
+      "sets",
+      "superset_id",
+    ]);
+    expect(Object.keys((ex.sets as Record<string, unknown>[])[0]!).sort()).toEqual([
+      "reps",
+      "rpe",
+      "type",
+      "weight_kg",
+    ]);
   });
 
   it("renders the created workout from the API's { workout } envelope", async () => {

@@ -18,6 +18,28 @@ const ROUTINE = {
   ],
 };
 
+// Shaped like a real GET /v1/routines/{id} payload: carries the read-only
+// keys (`index`, exercise `title`, set `index`) the API rejects on write.
+const FROM_GET = {
+  id: "r1",
+  title: "Leg Day",
+  folder_id: 42,
+  notes: "",
+  updated_at: "2026-04-01T10:00:00Z",
+  created_at: "2026-03-01T10:00:00Z",
+  exercises: [
+    {
+      index: 0,
+      title: "Squat",
+      notes: "",
+      exercise_template_id: "ex1",
+      superset_id: null,
+      rest_seconds: 60,
+      sets: [{ index: 0, type: "normal", weight_kg: 100, reps: 5 }],
+    },
+  ],
+};
+
 const fetchMock = vi.fn();
 const client = createClient({
   apiKey: "k",
@@ -87,6 +109,48 @@ describe("createRoutine", () => {
     expect(sent.routine).not.toHaveProperty("updated_at");
     expect(sent.routine).not.toHaveProperty("created_at");
     expect(JSON.parse(spy.mock.calls.map((c) => c[0]).join(""))).toMatchObject({ id: "r2" });
+  });
+
+  // The API answers 400 "Unrecognized key(s) in object: 'index', 'title'", so
+  // a `routines get --json | routines create` round-trip must send only the
+  // documented request keys.
+  it("sends only request keys when fed a GET response", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ routine: { ...ROUTINE, id: "r2" } }, 201));
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(FROM_GET)]);
+    await createRoutine(client, { json: true, stdin });
+    const sent = JSON.parse((fetchMock.mock.calls[0]![1] as RequestInit).body as string) as {
+      routine: Record<string, unknown>;
+    };
+    expect(Object.keys(sent.routine).sort()).toEqual([
+      "exercises",
+      "folder_id",
+      "notes",
+      "title",
+    ]);
+    const ex = (sent.routine.exercises as Record<string, unknown>[])[0]!;
+    expect(Object.keys(ex).sort()).toEqual([
+      "exercise_template_id",
+      "notes",
+      "rest_seconds",
+      "sets",
+      "superset_id",
+    ]);
+    expect(Object.keys((ex.sets as Record<string, unknown>[])[0]!).sort()).toEqual([
+      "reps",
+      "type",
+      "weight_kg",
+    ]);
+  });
+
+  it("unwraps the { routine } envelope in the create response", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ routine: { ...ROUTINE, id: "r2" } }, 201));
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stdin = Readable.from([JSON.stringify(ROUTINE)]);
+    await createRoutine(client, { json: false, stdin });
+    const out = spy.mock.calls.join("");
+    expect(out).toContain("Leg Day");
+    expect(out).not.toContain("(untitled)");
   });
 });
 

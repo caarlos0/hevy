@@ -76,7 +76,7 @@ export function validateWorkout(input: unknown): ValidationResult {
   if (input.routine_id !== undefined && input.routine_id !== null && !isStr(input.routine_id))
     push(issues, "routine_id", "must be a string or null");
 
-  validateExercises(input.exercises, issues, /*requireTitle*/ false, /*allowDistance*/ true, /*allowRest*/ false);
+  validateExercises(input.exercises, issues, /*allowDistance*/ true, /*allowRest*/ false);
   return issues.length === 0 ? { ok: true } : { ok: false, issues };
 }
 
@@ -99,7 +99,7 @@ export function validateRoutine(input: unknown): ValidationResult {
   if (!isNullableStr(input.notes))
     push(issues, "notes", "must be a string or null");
 
-  validateExercises(input.exercises, issues, /*requireTitle*/ true, /*allowDistance*/ false, /*allowRest*/ true);
+  validateExercises(input.exercises, issues, /*allowDistance*/ false, /*allowRest*/ true);
   return issues.length === 0 ? { ok: true } : { ok: false, issues };
 }
 
@@ -141,7 +141,6 @@ export function validateMeasurement(
 function validateExercises(
   exercises: unknown,
   issues: ValidationIssue[],
-  requireTitle: boolean,
   allowDistance: boolean,
   allowRest: boolean,
 ): void {
@@ -154,8 +153,6 @@ function validateExercises(
     if (!isObject(ex)) { push(issues, base, "must be an object"); return; }
     if (!isStr(ex.exercise_template_id) || ex.exercise_template_id.trim() === "")
       push(issues, `${base}.exercise_template_id`, "is required and must be a string");
-    if (requireTitle && (!isStr(ex.title) || ex.title.trim() === ""))
-      push(issues, `${base}.title`, "is required and must be a non-empty string");
     if (ex.superset_id !== undefined && ex.superset_id !== null && !isNum(ex.superset_id))
       push(issues, `${base}.superset_id`, "must be a number or null");
     if (!isNullableStr(ex.notes))

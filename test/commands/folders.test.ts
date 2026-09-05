@@ -88,6 +88,13 @@ describe("createFolder", () => {
     });
   });
 
+  it("unwraps the { routine_folder } envelope in the create response", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ routine_folder: FOLDER }, 201));
+    const spy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await createFolder(client, { title: "Push Pull 🏋️‍♂️", json: true });
+    expect(JSON.parse(spy.mock.calls.map((c) => c[0]).join(""))).toMatchObject({ id: 42 });
+  });
+
   it("rejects empty/whitespace titles without calling the API", async () => {
     await expect(createFolder(client, { title: "   " })).rejects.toThrow(
       /title cannot be empty/i,

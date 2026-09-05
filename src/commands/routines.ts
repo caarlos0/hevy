@@ -1,5 +1,6 @@
 import type { Readable } from "node:stream";
 import type { Client } from "../api/client.js";
+import { toRequest, unwrap, type RequestKeys } from "../api/payload.js";
 import { formatRoutine, formatRoutineList } from "../format/routines.js";
 import { emitDryRun, readJsonPayload, resolveEditPayload, writeJson } from "../io.js";
 import { validateRoutine } from "../validate.js";
@@ -14,7 +15,8 @@ interface SetIn {
 }
 
 interface ExerciseIn {
-  title: string;
+  // Read-only: the API returns it on GET but rejects it on POST/PUT.
+  title?: string;
   exercise_template_id: string;
   superset_id?: number | null;
   rest_seconds?: number | null;
@@ -42,13 +44,23 @@ interface GetSingleResponse {
   routine?: Routine;
 }
 
-const SERVER_FIELDS = ["id", "updated_at", "created_at"] as const;
-
-function stripServerFields(routine: Routine): Omit<Routine, "id" | "updated_at" | "created_at"> {
-  const copy: Record<string, unknown> = { ...routine };
-  for (const f of SERVER_FIELDS) delete copy[f];
-  return copy as Omit<Routine, "id" | "updated_at" | "created_at">;
-}
+// Keys accepted by POST /v1/routines and PUT /v1/routines/{id}. Everything
+// else a GET returns (`id`, `updated_at`, `created_at`, exercise `index` and
+// `title`, set `index`) is rejected with a 400, so a `get | create`
+// round-trip only works if we send exactly these.
+const REQUEST_KEYS: RequestKeys = {
+  top: ["title", "folder_id", "notes"],
+  exercise: ["exercise_template_id", "superset_id", "rest_seconds", "notes"],
+  set: [
+    "type",
+    "weight_kg",
+    "reps",
+    "distance_meters",
+    "duration_seconds",
+    "custom_metric",
+    "rep_range",
+  ],
+};
 
 export async function listRoutines(
   client: Client,
@@ -86,9 +98,12 @@ export async function createRoutine(
     emitDryRun(validateRoutine(input), "routine", opts.json);
     return;
   }
-  const created = await client.request<Routine>("POST", "/v1/routines", {
-    body: { routine: stripServerFields(input) },
-  });
+  const created = unwrap<Routine>(
+    await client.request<unknown>("POST", "/v1/routines", {
+      body: { routine: toRequest(input, REQUEST_KEYS) },
+    }),
+    "routine",
+  );
   if (opts.json) writeJson(created);
   else process.stdout.write(formatRoutine(created) + "\n");
 }
@@ -116,10 +131,13 @@ export async function editRoutine(
     return;
   }
 
-  const updated = await client.request<Routine>(
-    "PUT",
-    `/v1/routines/${encodeURIComponent(id)}`,
-    { body: { routine: stripServerFields(next) } },
+  const updated = unwrap<Routine>(
+    await client.request<unknown>(
+      "PUT",
+      `/v1/routines/${encodeURIComponent(id)}`,
+      { body: { routine: toRequest(next, REQUEST_KEYS) } },
+    ),
+    "routine",
   );
   if (opts.json) writeJson(updated);
   else process.stdout.write(formatRoutine(updated) + "\n");

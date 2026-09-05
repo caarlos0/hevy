@@ -1,4 +1,5 @@
 import type { Client } from "../api/client.js";
+import { unwrap } from "../api/payload.js";
 import { formatFolder, formatFolderList } from "../format/folders.js";
 import { writeJson } from "../io.js";
 
@@ -52,9 +53,12 @@ export async function createFolder(
 ): Promise<void> {
   const title = opts.title.trim();
   if (!title) throw new Error("folder title cannot be empty");
-  const created = await client.request<RoutineFolder>("POST", "/v1/routine_folders", {
-    body: { routine_folder: { title } },
-  });
+  const created = unwrap<RoutineFolder>(
+    await client.request<unknown>("POST", "/v1/routine_folders", {
+      body: { routine_folder: { title } },
+    }),
+    "routine_folder",
+  );
   if (opts.json) writeJson(created);
   else process.stdout.write(formatFolder(created) + "\n");
 }
