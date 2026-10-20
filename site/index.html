@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Hevy CLI brings workout data into terminals, scripts, and agent workflows."
+    />
+    <meta name="theme-color" content="#070809" />
+    <meta property="og:title" content="Hevy CLI | Your training data, command ready" />
+    <meta
+      property="og:description"
+      content="Inspect, edit, validate, and automate your Hevy data from the command line."
+    />
+    <meta property="og:type" content="website" />
+    <title>Hevy CLI | Your training data, command ready</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/fonts.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <!--
+  THESIS: Training data becomes a command surface; refuse the generic app-card landing page.
+  OWN-WORLD: Chalk-white training ledger, ink-black rules, cobalt command marks, condensed athletic display, mono data.
+  STORY: See terminal and workout data move together, trust the CLI's machine behavior, install or inspect source.
+  FIRST VIEWPORT: Oversized left headline and actions face a ruled terminal-to-workout composition on the right.
+  FORM: Strength-programming ledger, third grounded direction, seed aabbe6a2.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+  -->
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="#top">
+        <span class="mark" aria-hidden="true"><i></i><b>H</b><i></i></span>
+        <span>HEVY<span class="cli-tag">/CLI</span></span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#workflows">Workflows</a>
+        <a href="#commands">Commands</a>
+        <a href="#install">Install</a>
+      </nav>
+      <a class="header-github" href="https://github.com/caarlos0/hevy"
+        >GitHub <span aria-hidden="true">↗</span></a
+      >
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <h1>Your workouts.<br /><em>Your terminal.</em></h1>
+          <p class="hero-deck">
+            Inspect workouts, build routines, validate payloads, and automate Hevy data without
+            leaving the command line.
+          </p>
+          <div class="hero-actions">
+            <div class="install-command">
+              <span class="shell-prompt">$</span><code>npm install -g @caarlos0/hevy</code>
+              <button
+                class="copy-button"
+                type="button"
+                data-copy="npm install -g @caarlos0/hevy"
+                aria-label="Copy npm install command"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+                  <path
+                    d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-10A1.5 1.5 0 0 0 3 5.5v10A1.5 1.5 0 0 0 4.5 17H8"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <a class="button button-dark" href="https://github.com/caarlos0/hevy"
+              >View on GitHub <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <p class="hero-footnote">
+            Open-source community project. <code>hevy --help</code> needs no key; account commands
+            use <code>HEVY_API_KEY</code>.
+          </p>
+        </div>
+
+        <div
+          class="hero-visual robot-stage"
+          role="img"
+          aria-label="Animated chrome robot performing barbell squats"
+        >
+          <div class="rack" aria-hidden="true"><i></i><i></i><b></b><b></b></div>
+          <div class="telemetry t-left">
+            <span>REP</span><strong id="rep-count">04</strong><small>/ 05</small>
+          </div>
+          <div class="telemetry t-right">
+            <span>LOAD</span><strong>140</strong><small>KG</small>
+          </div>
+          <div class="robot-wrap" aria-hidden="true">
+            <svg class="robot" viewBox="0 0 520 520">
+              <defs>
+                <linearGradient id="metal" x1="0" x2="1">
+                  <stop stop-color="#30353a" />
+                  <stop offset=".22" stop-color="#dfe6e8" />
+                  <stop offset=".5" stop-color="#5c656b" />
+                  <stop offset=".72" stop-color="#f7ffff" />
+                  <stop offset="1" stop-color="#292e32" />
+                </linearGradient>
+                <linearGradient id="darkmetal">
+                  <stop stop-color="#111315" />
+                  <stop offset=".5" stop-color="#687077" />
+                  <stop offset="1" stop-color="#151719" />
+                </linearGradient>
+              </defs>
+              <g class="bot">
+                <g class="lifted-load" data-squat-part="lifted-load">
+                  <g class="barbell" data-squat-part="barbell">
+                    <path class="bar" d="M52 152H468" />
+                    <g class="plates left">
+                      <rect x="28" y="111" width="22" height="82" />
+                      <rect x="50" y="120" width="16" height="64" />
+                      <path d="M66 152h22" />
+                    </g>
+                    <g class="plates right">
+                      <rect x="470" y="111" width="22" height="82" />
+                      <rect x="454" y="120" width="16" height="64" />
+                      <path d="M432 152h22" />
+                    </g>
+                  </g>
+                  <g class="upper-body" data-squat-part="upper-body">
+                    <g class="head">
+                      <path d="M219 70h82l18 22-10 72-29 19h-40l-29-19-10-72z" />
+                      <path class="face" d="M220 105h80l-5 42-22 15h-28l-22-15z" />
+                      <path class="eye" d="M235 125h50" />
+                      <circle cx="260" cy="82" r="6" />
+                    </g>
+                    <g class="torso">
+                      <path d="M194 181l33-23h66l33 23 14 104-42 43h-76l-42-43z" />
+                      <path class="core" d="M226 196h68l14 79-26 27h-44l-26-27z" />
+                      <path class="badge" d="M246 218h28v28h-28z" />
+                    </g>
+                    <g class="arm arm-l">
+                      <circle cx="191" cy="190" r="21" />
+                      <path d="M183 195l-37-23-36-18" />
+                      <circle cx="146" cy="172" r="14" />
+                      <path d="M111 154l-28-3" />
+                      <g class="robot-hand">
+                        <rect x="71" y="138" width="25" height="28" rx="10" />
+                        <path d="M76 146h15M76 153h15M78 160h11" />
+                      </g>
+                    </g>
+                    <g class="arm arm-r">
+                      <circle cx="329" cy="190" r="21" />
+                      <path d="M337 195l37-23 36-18" />
+                      <circle cx="374" cy="172" r="14" />
+                      <path d="M409 154l28-3" />
+                      <g class="robot-hand">
+                        <rect x="424" y="138" width="25" height="28" rx="10" />
+                        <path d="M429 146h15M429 153h15M431 160h11" />
+                      </g>
+                    </g>
+                  </g>
+                </g>
+                <g class="leg leg-l" data-squat-leg="left">
+                  <circle class="hip" cx="231" cy="326" r="18" />
+                  <path class="leg-link" d="M231 326 L201 404 L219 474" />
+                  <circle class="knee" cx="201" cy="404" r="15" />
+                  <path class="foot" d="M219 474h-58" />
+                </g>
+                <g class="leg leg-r" data-squat-leg="right">
+                  <circle class="hip" cx="289" cy="326" r="18" />
+                  <path class="leg-link" d="M289 326 L319 404 L301 474" />
+                  <circle class="knee" cx="319" cy="404" r="15" />
+                  <path class="foot" d="M301 474h58" />
+                </g>
+              </g>
+            </svg>
+          </div>
+          <div class="floor-line" aria-hidden="true"></div>
+          <div class="terminal-float">
+            <div><span></span><span></span><span></span><b>~/training</b></div>
+            <pre><i>$</i> jq '.title = "Leg Day Baby"' squat.json \
+  | hevy workouts create --file -
+<span>illustrative · barbell squat · quads</span></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="ticker" aria-label="CLI features">
+        <div class="ticker-track" aria-hidden="true">
+          <div class="ticker-group">
+            <span class="ticker-item">WORKOUTS</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">ROUTINES</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">EXERCISES</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">HISTORY</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">MEASUREMENTS</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">JSON</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">DRY RUN</span><span class="ticker-dot">●</span>
+          </div>
+          <div class="ticker-group">
+            <span class="ticker-item">WORKOUTS</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">ROUTINES</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">EXERCISES</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">HISTORY</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">MEASUREMENTS</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">JSON</span><span class="ticker-dot">●</span>
+            <span class="ticker-item">DRY RUN</span><span class="ticker-dot">●</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="workflow-intro" id="workflows">
+        <div>
+          <h2>Built for the way<br />you <em>train &amp; automate.</em></h2>
+        </div>
+        <p>
+          Human-readable when you are exploring. Machine-readable JSON when a script or agent needs
+          the same data. One CLI, no translation layer.
+        </p>
+      </section>
+
+      <section class="machine-section">
+        <div class="machine-copy">
+          <h2>Predictable enough<br />for the <em>machines.</em></h2>
+          <p>
+            Machine-readable JSON goes to stdout. Human-readable errors go to stderr; JSON dry-run
+            validation stays on stdout. Failures return a non-zero exit, giving scripts and agents a
+            contract instead of decorated terminal output.
+          </p>
+          <div class="contract-list">
+            <div><span>STDOUT</span><strong>MACHINE JSON</strong><b>→ pipe it</b></div>
+            <div><span>STDERR</span><strong>HUMAN ERRORS</strong><b>→ catch it</b></div>
+            <div><span>EXIT</span><strong>NON-ZERO</strong><b>→ branch on it</b></div>
+          </div>
+        </div>
+        <div class="json-console">
+          <div class="terminal-bar"><span></span><span></span><span></span><b>agent/run.sh</b></div>
+          <pre><code><i>$</i> hevy workouts list --json | jq '.workouts[0]'
+
+{
+  <b>"id"</b>: "f8d2...",
+  <b>"title"</b>: "Lower Strength",
+  <b>"start_time"</b>: "2026-07-30T17:30:00Z",
+  <b>"exercises"</b>: [
+    { <b>"title"</b>: "Barbell Squat", <b>"sets"</b>: [...] }
+  ]
+}
+
+<span class="success">✓ stdout: valid JSON / exit 0</span></code></pre>
+          <small class="illustrative">Illustrative JSON output shape</small>
+        </div>
+      </section>
+
+      <section class="command-section" id="commands">
+        <div class="command-heading">
+          <h2>The whole training log.<br /><em>At your prompt.</em></h2>
+          <p>
+            Read account data, create resources, and edit them without inventing another workflow.
+          </p>
+        </div>
+        <div class="command-table">
+          <div class="command-row">
+            <span>WHOAMI</span><code>hevy whoami</code>
+            <p>Authenticated user identity</p>
+          </div>
+          <div class="command-row">
+            <span>ROUTINES</span><code>list / get / create / edit</code>
+            <p>Programs from JSON or your editor</p>
+          </div>
+          <div class="command-row">
+            <span>WORKOUTS</span><code>list / get / count / events / create / edit</code>
+            <p>Sessions, history sync, and mutation</p>
+          </div>
+          <div class="command-row">
+            <span>EXERCISES</span><code>list / get / history / create</code>
+            <p>Templates, performance, and custom movements</p>
+          </div>
+          <div class="command-row">
+            <span>MEASUREMENTS</span><code>list / get / create / edit</code>
+            <p>Body measurements by date</p>
+          </div>
+          <div class="command-row">
+            <span>FOLDERS</span><code>list / get / create</code>
+            <p>Routine organization</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="install-section" id="install">
+        <div class="install-copy">
+          <h2>Rack it.<br /><em>Run it.</em></h2>
+          <p>
+            Install globally, try it once with npx, or grab a prebuilt release for macOS, Linux, or
+            Windows.
+          </p>
+        </div>
+        <div class="install-options">
+          <div class="install-option active">
+            <span>NPM</span><code>npm install -g @caarlos0/hevy</code
+            ><button
+              type="button"
+              class="copy-button"
+              data-copy="npm install -g @caarlos0/hevy"
+              aria-label="Copy npm install command"
+            >
+              COPY
+            </button>
+          </div>
+          <div class="install-option">
+            <span>NPX</span><code>npx @caarlos0/hevy --help</code
+            ><button
+              type="button"
+              class="copy-button"
+              data-copy="npx @caarlos0/hevy --help"
+              aria-label="Copy npx command"
+            >
+              COPY
+            </button>
+          </div>
+          <a class="release-option" href="https://github.com/caarlos0/hevy/releases"
+            ><span>PREBUILT RELEASES</span><strong>macOS / Linux / Windows</strong
+            ><b aria-hidden="true">↗</b></a
+          >
+          <div class="key-note">
+            <strong>CONNECT YOUR ACCOUNT</strong>
+            <p>
+              Get an API key from Hevy settings, then export it as <code>HEVY_API_KEY</code>. Never
+              paste a key into this site.
+            </p>
+            <a href="https://hevy.com/settings?api"
+              >Open API settings <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta">
+        <div class="cta-barbell" aria-hidden="true">
+          <span></span><i></i><b></b><i></i><span></span>
+        </div>
+        <h2>Put your training data<br /><em>under your control.</em></h2>
+        <div class="final-actions">
+          <a class="button button-light" href="https://github.com/caarlos0/hevy"
+            >Explore the source <span aria-hidden="true">↗</span></a
+          ><a href="https://api.hevyapp.com/docs/">Read the Hevy API docs</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <a class="wordmark footer-mark" href="#top"
+        ><span class="mark" aria-hidden="true"><i></i><b>H</b><i></i></span
+        ><span>HEVY<span class="cli-tag">/CLI</span></span></a
+      >
+      <p>Open-source community project. Not affiliated with or endorsed by Hevy Studios.</p>
+      <div>
+        <a href="https://github.com/caarlos0/hevy">GitHub</a
+        ><a href="https://api.hevyapp.com/docs/">API docs</a
+        ><a href="https://github.com/caarlos0/hevy/blob/main/LICENSE">MIT license</a>
+      </div>
+    </footer>
+  </body>
+</html>
