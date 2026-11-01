@@ -54,7 +54,7 @@
     "tsup": "^9.0.0",
     "tsx": "^4.16.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.12"
   },
   "license": "MIT",
   "author": "Carlos Alexandro Becker"
