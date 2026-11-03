@@ -20,6 +20,14 @@ jobs:
           node-version: "25"
           cache: npm
           registry-url: "https://registry.npmjs.org"
+      - id: publishing-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: caarlos0
+          repositories: homebrew-tap
+          permission-contents: write
       - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           version: nightly
@@ -27,7 +35,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_PAT: ${{ secrets.GH_PAT }}
+          GH_PAT: ${{ steps.publishing-token.outputs.token }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           MACOS_SIGN_P12: ${{ secrets.MACOS_SIGN_P12 }}
           MACOS_SIGN_PASSWORD: ${{ secrets.MACOS_SIGN_PASSWORD }}
